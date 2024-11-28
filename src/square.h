@@ -1,3 +1,4 @@
+#pragma once
 #include <cassert>
 #include <iostream>
 
@@ -21,6 +22,13 @@ public:
     constexpr uint8_t rank() const { return index / 8; }
     constexpr uint8_t file() const { return index % 8; }
     constexpr bool isValid() const { return index < 64; }
+
+    std::string to_string() const {
+        std::string square_str;
+        square_str += 'a' + file();
+        square_str += '1' + rank();
+        return square_str;
+    } 
 
     constexpr Square operator+(int move) const {
         return Square(index + move);
