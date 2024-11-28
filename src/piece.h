@@ -25,13 +25,13 @@ public:
     }
 };
 
-struct PieceTypes {
-    static constexpr PieceType PAWN   = PieceType(0);
-    static constexpr PieceType KNIGHT = PieceType(1);
-    static constexpr PieceType BISHOP = PieceType(2);
-    static constexpr PieceType ROOK   = PieceType(3);
-    static constexpr PieceType QUEEN  = PieceType(4);
-    static constexpr PieceType KING   = PieceType(5);
+namespace PieceTypes {
+    constexpr PieceType PAWN   = PieceType(0);
+    constexpr PieceType KNIGHT = PieceType(1);
+    constexpr PieceType BISHOP = PieceType(2);
+    constexpr PieceType ROOK   = PieceType(3);
+    constexpr PieceType QUEEN  = PieceType(4);
+    constexpr PieceType KING   = PieceType(5);
 };
 
 class Piece {
@@ -50,19 +50,19 @@ public:
     }
 };
 
-struct Pieces {
-    static constexpr Piece BLACK_PAWN   = Piece(0);
-    static constexpr Piece WHITE_PAWN   = Piece(1);
-    static constexpr Piece BLACK_KNIGHT = Piece(2);
-    static constexpr Piece WHITE_KNIGHT = Piece(3);
-    static constexpr Piece BLACK_BISHOP = Piece(4);
-    static constexpr Piece WHITE_BISHOP = Piece(5);
-    static constexpr Piece BLACK_ROOK   = Piece(6);
-    static constexpr Piece WHITE_ROOK   = Piece(7);
-    static constexpr Piece BLACK_QUEEN  = Piece(8);
-    static constexpr Piece WHITE_QUEEN  = Piece(9);
-    static constexpr Piece BLACK_KING   = Piece(10);
-    static constexpr Piece WHITE_KING   = Piece(11);
+namespace Pieces {
+    constexpr Piece BLACK_PAWN   = Piece(0);
+    constexpr Piece WHITE_PAWN   = Piece(1);
+    constexpr Piece BLACK_KNIGHT = Piece(2);
+    constexpr Piece WHITE_KNIGHT = Piece(3);
+    constexpr Piece BLACK_BISHOP = Piece(4);
+    constexpr Piece WHITE_BISHOP = Piece(5);
+    constexpr Piece BLACK_ROOK   = Piece(6);
+    constexpr Piece WHITE_ROOK   = Piece(7);
+    constexpr Piece BLACK_QUEEN  = Piece(8);
+    constexpr Piece WHITE_QUEEN  = Piece(9);
+    constexpr Piece BLACK_KING   = Piece(10);
+    constexpr Piece WHITE_KING   = Piece(11);
 };
 
 }; // namespace BBD

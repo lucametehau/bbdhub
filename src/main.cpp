@@ -1,7 +1,9 @@
 #include <iostream>
 #include "piece.h"
 #include "square.h"
+#include "move.h"
 
+using namespace BBD; // DON'T LEAVE THIS HERE
 
 int main(int argc, char* argv[]) {
     // Decomment this when parser is implemented!
@@ -12,15 +14,11 @@ int main(int argc, char* argv[]) {
     }
     */
 
-    std::cout << BBD::Pieces::WHITE_PAWN.to_char() << "\n";
-    std::cout << BBD::Pieces::WHITE_BISHOP.to_char() << "\n";
-    std::cout << BBD::Pieces::BLACK_KNIGHT.to_char() << "\n";
-    std::cout << BBD::Pieces::BLACK_QUEEN.to_char() << "\n";
-    std::cout << BBD::Pieces::WHITE_KING.to_char() << "\n";
+    using namespace BBD::Squares;
 
-    std::cout << BBD::Squares::A6 << "\n"; // 40
-    std::cout << BBD::Squares::B7 << "\n"; // 49
-    std::cout << BBD::Squares::C8 << "\n"; // 58
-
+    Move move(D8, E6, MoveTypes::NO_TYPE);
+    std::cout << move.to_string() << "\n"; // d8e6
+    move = Move(E2, E1, MoveTypes::PROMO_ROOK);
+    std::cout << move.to_string() << "\n"; // e2e1q
     return 0;
 }
