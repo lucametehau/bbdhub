@@ -1,13 +1,19 @@
 #pragma once
 #include <cstdint>
 #include <array>
+#include "color.h"
 
 namespace BBD
 {
 
 /*
 We have 12 pieces, so we will represent the piece types as:
-- 0 is PAWN, 1 is KNIGHT, 2 is BISHOP, 3 is ROOK, 4 is QUEEN, 5 is KING
+- 0 is PAWN
+- 1 is KNIGHT
+- 2 is BISHOP
+- 3 is ROOK
+- 4 is QUEEN
+- 5 is KING
 The normal piece will be encoded as 2 * piece_type + color.
 For example: WHITE_KING = 2 * KING + WHITE = 11.
 */
@@ -42,11 +48,11 @@ public:
     constexpr Piece(uint8_t id) : m_piece(id) {}
 
     PieceType type() const { return PieceType(m_piece / 2); }
-    bool color() const { return m_piece & 1; } // TODO: Make color
+    Color color() const { return m_piece & 1; } // TODO: Make color
     operator bool() const { return m_piece; }
 
     char to_char() const {
-        return color() == 1 ? toupper(type().to_char()) : type().to_char(); // TODO: Change to color
+        return color() == Colors::BLACK ? toupper(type().to_char()) : type().to_char(); // TODO: Change to color
     }
 };
 
