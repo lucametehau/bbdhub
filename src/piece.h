@@ -25,6 +25,14 @@ public:
     constexpr PieceType() = default;
     constexpr PieceType(uint8_t id) : m_piece_type(id) {}
 
+    constexpr PieceType(const PieceType& other) = default;
+
+    constexpr PieceType& operator=(const PieceType& other) = default;
+
+    operator uint8_t() const {
+      return m_piece_type;
+    }
+
     char to_char() {
         constexpr std::array<char, 6> char_map = std::array{'p', 'n', 'b', 'r', 'q', 'k'};
         return char_map[m_piece_type];
@@ -47,6 +55,9 @@ public:
     constexpr Piece() = default;
     constexpr Piece(uint8_t id) : m_piece(id) {}
 
+    constexpr Piece(const Piece& other) = default;
+    constexpr Piece& operator=(const Piece& other) = default;
+
     PieceType type() const { return PieceType(m_piece / 2); }
     Color color() const { return m_piece & 1; } // TODO: Make color
     operator bool() const { return m_piece; }
@@ -54,6 +65,7 @@ public:
     char to_char() const {
         return color() == Colors::BLACK ? toupper(type().to_char()) : type().to_char(); // TODO: Change to color
     }
+    ~Piece() = default;
 };
 
 namespace Pieces {

@@ -12,6 +12,12 @@ public:
     operator uint8_t() const {
         return m_color;
     }
+
+    /// flips the color
+    /// \return
+    Color flip() {
+      return Color(~m_color);
+    }
 };
 
 namespace Colors {
