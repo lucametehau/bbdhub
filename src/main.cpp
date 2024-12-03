@@ -16,15 +16,16 @@ int main(int argc, char* argv[]) {
     }
     */
 
-    using namespace BBD::Squares;
-
-    Move move(D8, E6, MoveTypes::NO_TYPE);
-    std::cout << move.to_string() << "\n"; // d8e6
-    move = Move(E2, E1, MoveTypes::PROMO_ROOK);
-    std::cout << move.to_string() << "\n"; // e2e1q
 
     using namespace BBD::attacks;
-    print_mask(king_attacks[E1]);
+    using namespace BBD::Squares;
+    print_mask(king_attacks[E2]);
     print_mask(knight_attacks[E4]);
+    Bitboard occ = (1ull << E3) | (1ull << D5);
+    print_mask(generate_attacks<PieceTypes::BISHOP>(G2, occ));
+    print_mask(generate_attacks<PieceTypes::BISHOP>(E4, occ));
+    print_mask(generate_attacks<PieceTypes::ROOK>(E4, occ));
+    print_mask(generate_attacks<PieceTypes::ROOK>(D1, occ));
+
     return 0;
 }

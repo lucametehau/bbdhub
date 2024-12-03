@@ -47,6 +47,11 @@ namespace BBD {
             return *this;
         }
 
+        constexpr Square& operator++() {
+            index++;
+            return *this;
+        }
+
         friend std::ostream& operator<<(std::ostream& os, const Square& square) {
             os << static_cast<int>(square.index);
             return os;
