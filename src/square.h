@@ -2,8 +2,10 @@
 #include <cassert>
 #include <iostream>
 
-// We represent the board as an array of 64 values ranging from 0 to 63.
-// Each value represents a square on the board.
+/*
+We represent the board as an array of 64 values ranging from 0 to 63.
+Each value represents a square on the board.
+*/
 
 namespace BBD {
     class Square {
