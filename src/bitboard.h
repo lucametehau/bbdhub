@@ -18,6 +18,10 @@ namespace BBD {
             return (mask >> square) & 1;
         }
 
+        constexpr operator unsigned long long() const {
+            return index;
+        }
+
         // Return least significant bit
         unsigned long long lsb() {
             if (mask == 0) return -1;
@@ -37,7 +41,22 @@ namespace BBD {
         Bitboard operator ~ () const { return ~mask; }
         Bitboard operator << (const int8_t shift) const { return mask << shift; }
         Bitboard operator >> (const int8_t shift) const { return mask >> shift; }
-        
+
+        Bitboard& operator &= (const Bitboard &other) {
+            mask &= other.mask;
+            return *this;
+        }
+
+        Bitboard& operator |= (const Bitboard &other) {
+            mask |= other.mask;
+            return *this;
+        }
+
+        Bitboard& operator ^= (const Bitboard &other) {
+            mask ^= other.mask;
+            return *this;
+        }
+
         // Print bitboard for debugging
         void print() {
             for (int rank = 7; rank >= 0; rank--) {
