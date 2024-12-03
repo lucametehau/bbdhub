@@ -21,6 +21,7 @@ For example: WHITE_KING = 2 * KING + WHITE = 11.
 class PieceType {
 private:
     uint8_t m_piece_type;
+    
 public:
     constexpr PieceType() = default;
     constexpr PieceType(uint8_t id) : m_piece_type(id) {}

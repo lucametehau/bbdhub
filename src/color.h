@@ -3,6 +3,7 @@
 namespace BBD {
 
 class Color {
+private:
     uint8_t m_color;
     
 public:
