@@ -19,7 +19,7 @@ namespace BBD {
         }
 
         constexpr operator unsigned long long() const {
-            return index;
+            return mask;
         }
 
         // Return least significant bit
@@ -66,7 +66,7 @@ namespace BBD {
                 }
             std::cout << "\n";
             }
-        std::cout << "------------------\n";
+            std::cout << "------------------\n";
         }
         
     };

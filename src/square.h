@@ -15,21 +15,11 @@ namespace BBD {
         constexpr Square() = default;
         constexpr Square(uint8_t idx) : index(idx) { assert(idx <= 64); }
         constexpr Square(uint8_t rank, uint8_t file) : index(rank * 8 + file) {}
-    public:
-        constexpr Square() = default;
-        constexpr Square(uint8_t idx) : index(idx) { assert(idx <= 64); }
-        constexpr Square(uint8_t rank, uint8_t file) : index(rank * 8 + file) {}
 
         constexpr operator uint8_t() const {
             return index;
         }
-        constexpr operator uint8_t() const {
-            return index;
-        }
 
-        constexpr uint8_t rank() const { return index / 8; }
-        constexpr uint8_t file() const { return index % 8; }
-        constexpr bool isValid() const { return index < 64; }
         constexpr uint8_t rank() const { return index / 8; }
         constexpr uint8_t file() const { return index % 8; }
         constexpr bool isValid() const { return index < 64; }
@@ -39,13 +29,7 @@ namespace BBD {
             square_str += 'a' + file();
             square_str += '1' + rank();
             return square_str;
-        } 
-        std::string to_string() const {
-            std::string square_str;
-            square_str += 'a' + file();
-            square_str += '1' + rank();
-            return square_str;
-        } 
+        }
 
         constexpr Square operator+(int move) const {
             return Square(index + move);

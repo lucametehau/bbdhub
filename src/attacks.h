@@ -4,23 +4,12 @@
 #include "square.h"
 #include "color.h"
 #include "piece.h"
-#define Bitboard unsigned long long
+#include "bitboard.h"
 
 using namespace BBD;
 
 namespace BBD::attacks {
     // helper functions
-    void print_mask(Bitboard mask) {
-        for (int rank = 7; rank >= 0; rank--) {
-            for (int file = 0; file < 8; file++) {
-                if (mask & (1ull << (8 * rank + file))) std::cout << "1 ";
-                else std::cout << "0 ";
-            }
-            std::cout << "\n";
-        }
-        std::cout << "------------------\n";
-    }
-
     bool inside_board(uint8_t rank, uint8_t file) { 
         return 0 <= rank && rank < 8 && 0 <= file && file < 8;
     }
@@ -34,21 +23,21 @@ namespace BBD::attacks {
 
     void init_pawn_attacks() {
         constexpr uint8_t file_a = 0, file_h = 7;
-        constexpr uint8_t rank_2 = 1, rank_7 = 6;
+        constexpr uint8_t rank_1 = 0, rank_8 = 7;
 
         for (Square sq = Squares::A1; sq <= Squares::H8; ++sq) {
             const uint8_t file = sq.file(), rank = sq.rank();
             if (file != file_a) {
-                if (rank != rank_7)
-                    pawn_attacks[Colors::WHITE][sq] |= 1ull << Square(rank + 1, file - 1);
-                if (rank != rank_2)
-                    pawn_attacks[Colors::BLACK][sq] |= 1ull << Square(rank - 1, file - 1);
+                if (rank < rank_8)
+                    pawn_attacks[Colors::WHITE][sq] |= Bitboard(Square(rank + 1, file - 1));
+                if (rank > rank_1)
+                    pawn_attacks[Colors::BLACK][sq] |= Bitboard(Square(rank - 1, file - 1));
             }
             if (file != file_h) {
-                if (rank != rank_7)
-                    pawn_attacks[Colors::WHITE][sq] |= 1ull << Square(rank + 1, file + 1);
-                if (rank != rank_2)
-                    pawn_attacks[Colors::BLACK][sq] |= 1ull << Square(rank - 1, file + 1);
+                if (rank < rank_8)
+                    pawn_attacks[Colors::WHITE][sq] |= Bitboard(Square(rank + 1, file + 1));
+                if (rank > rank_1)
+                    pawn_attacks[Colors::BLACK][sq] |= Bitboard(Square(rank - 1, file + 1));
             }
         }
     }
@@ -67,7 +56,7 @@ namespace BBD::attacks {
 
             for (auto [d_rank, d_file] : knight_delta) {
                 const uint8_t new_file = file + d_file, new_rank = rank + d_rank;
-                if (inside_board(new_rank, new_file)) knight_attacks[sq] |= 1ull << Square(new_rank, new_file);
+                if (inside_board(new_rank, new_file)) knight_attacks[sq] |= Bitboard(Square(new_rank, new_file));
             }
         }
     }
@@ -82,7 +71,7 @@ namespace BBD::attacks {
 
             for (auto [d_rank, d_file] : king_delta) {
                 const uint8_t new_file = file + d_file, new_rank = rank + d_rank;
-                if (inside_board(new_rank, new_file)) king_attacks[sq] |= 1ull << Square(new_rank, new_file);
+                if (inside_board(new_rank, new_file)) king_attacks[sq] |= Bitboard(Square(new_rank, new_file));
             }
         }
     }
@@ -96,12 +85,13 @@ namespace BBD::attacks {
 
     void init_slider_attacks() {
         for (Square sq = Squares::A1; sq <= Squares::H8; ++sq) {
-            Bitboard sq_mask = 1ull << sq;
+            Bitboard sq_mask(sq);
             rank_mask[sq.rank()] |= sq_mask;
             file_mask[sq.file()] |= sq_mask;
             anti_diagonal_mask[sq.rank() + sq.file()] |= sq_mask;
             diagonal_mask[7 + sq.rank() - sq.file()] |= sq_mask;
         }
+        rank_mask[0].print();
     }
 
     Bitboard reverse_bits(Bitboard mask) {
@@ -110,9 +100,9 @@ namespace BBD::attacks {
 
     Bitboard hyperbola_quintessence(Square sq, Bitboard occ, Bitboard mask) {
         Bitboard occ_on_mask = occ & mask;
-        return mask & (
-            (occ_on_mask - (2ull << sq)) ^ reverse_bits(reverse_bits(occ_on_mask) - (2ull << (63 - sq)))
-        );
+        Bitboard mask1 = occ_on_mask - (Bitboard(sq) << static_cast<int8_t>(1));
+        Bitboard mask2 = reverse_bits(reverse_bits(occ_on_mask) - (Bitboard(Square(sq ^ 63)) << static_cast<int8_t>(1)));
+        return mask & (mask1 ^ mask2);
     }
 
     Bitboard generate_attacks_bishop(Square sq, Bitboard occ) {

@@ -19,13 +19,13 @@ int main(int argc, char* argv[]) {
 
     using namespace BBD::attacks;
     using namespace BBD::Squares;
-    print_mask(king_attacks[E2]);
-    print_mask(knight_attacks[E4]);
+    king_attacks[E2].print();
+    knight_attacks[E4].print();
     Bitboard occ = (1ull << E3) | (1ull << D5);
-    print_mask(generate_attacks<PieceTypes::BISHOP>(G2, occ));
-    print_mask(generate_attacks<PieceTypes::BISHOP>(E4, occ));
-    print_mask(generate_attacks<PieceTypes::ROOK>(E4, occ));
-    print_mask(generate_attacks<PieceTypes::ROOK>(D1, occ));
+    generate_attacks<PieceTypes::BISHOP>(G2, occ).print();
+    generate_attacks<PieceTypes::BISHOP>(E4, occ).print();
+    generate_attacks<PieceTypes::ROOK>(E4, occ).print();
+    generate_attacks<PieceTypes::ROOK>(D1, occ).print();
 
     return 0;
 }
