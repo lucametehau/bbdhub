@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 #include "color.h"
 #include "move.h"
 #include "piece.h"
@@ -22,10 +23,11 @@ class Board {
     Square from = move.from();
     Square to = move.to();
 
-    update_bitmap(current_color, squares[from].type(), to, 1);
-    update_bitmap(current_color, squares[from].type(), from, 0);
+    // update bitmap for captured piece
+    update_bitmap(current_color.flip(), squares[to].type(), to, 0);
+    captured_pieces.push_back(squares[to]);
 
-    switch ( move.type()) {
+    switch ( move.type() ) {
       case CASTLE:
         // queen's side
         if ( to > from ) {
@@ -35,34 +37,42 @@ class Board {
           update_bitmap(current_color, PieceTypes::KING, to + 1, 1);
           update_bitmap(current_color, PieceTypes::KING, to - 1, 0);
         }
-        // TODO: check for copy constructor call here
         std::swap(squares[to + 1], squares[to - 1]);
 
       case ENPASSANT:
         update_bitmap(current_color.flip(), PieceTypes::PAWN, to - 8, 0);
+        captured_pieces.push_back(squares[to-8]);
         squares[to - 8] = Piece();
 
       case PROMO_KNIGHT:
-        update_bitmap(current_color, PieceTypes::KNIGHT, to, 1);
-        squares[from] = (squares[from].color() ? Pieces::WHITE_KNIGHT : Pieces::BLACK_KNIGHT);
+        update_bitmap(current_color, PieceTypes::PAWN, from, 0);
+        captured_pieces.push_back(squares[from]);
+        squares[from] = (current_color ? Pieces::WHITE_KNIGHT : Pieces::BLACK_KNIGHT);
 
       case PROMO_BISHOP:
-        update_bitmap(current_color, PieceTypes::BISHOP, to, 1);
-        squares[from] = (squares[from].color() ? Pieces::WHITE_BISHOP : Pieces::BLACK_BISHOP);
+        update_bitmap(current_color, PieceTypes::PAWN, from, 0);
+        captured_pieces.push_back(squares[from]);
+        squares[from] = (current_color ? Pieces::WHITE_BISHOP : Pieces::BLACK_BISHOP);
 
       case PROMO_ROOK:
-        update_bitmap(current_color, PieceTypes::ROOK, to, 1);
-        squares[from] = (squares[from].color() ? Pieces::WHITE_ROOK : Pieces::BLACK_ROOK);
+        update_bitmap(current_color, PieceTypes::PAWN, from, 0);
+        captured_pieces.push_back(squares[from]);
+        squares[from] = (current_color ? Pieces::WHITE_ROOK : Pieces::BLACK_ROOK);
 
       case PROMO_QUEEN:
-        update_bitmap(current_color, PieceTypes::QUEEN, to, 1);
-        squares[from] = (squares[from].color() ? Pieces::WHITE_QUEEN : Pieces::BLACK_QUEEN);
+        update_bitmap(current_color, PieceTypes::PAWN, from, 0);
+        captured_pieces.push_back(squares[from]);
+        squares[from] = (current_color ? Pieces::WHITE_QUEEN : Pieces::BLACK_QUEEN);
 
       default:break;
     }
 
+
+    // update the bitmap for moving piece
+    update_bitmap(current_color, squares[from].type(), to, 1);
+    update_bitmap(current_color, squares[from].type(), from, 0);
+
     // make move
-    // TODO: check for copy constructor call here
     std::swap(squares[to], squares[from]);
     squares[from] = Piece();
 
@@ -74,6 +84,50 @@ class Board {
   /// \param move
   /// \return
   bool undo_move(const Move& move) {
+    Square from = move.from();
+    Square to = move.to();
+
+    current_color = current_color.flip();
+
+    switch ( move.type() ) {
+      case CASTLE:
+        // queen's side
+        if ( to > from ) {
+          update_bitmap(current_color, PieceTypes::KING, to + 1, 1);
+          update_bitmap(current_color, PieceTypes::KING, to - 1, 0);
+        } else {
+          update_bitmap(current_color, PieceTypes::KING, to + 1, 0);
+          update_bitmap(current_color, PieceTypes::KING, to - 1, 1);
+        }
+        std::swap(squares[to + 1], squares[to - 1]);
+
+      case ENPASSANT:
+        update_bitmap(current_color.flip(), PieceTypes::PAWN, to - 8, 1);
+        squares[to - 8] = captured_pieces.back();
+        captured_pieces.pop_back();
+
+      case PROMO_KNIGHT:
+      case PROMO_BISHOP:
+      case PROMO_ROOK:
+      case PROMO_QUEEN: {
+        update_bitmap(current_color, squares[to].type(), to, 0);
+        squares[to] = captured_pieces.back();
+        captured_pieces.pop_back();
+        break;
+      }
+
+      default:break;
+    }
+
+    update_bitmap(current_color, squares[to].type(), to, 0);
+    update_bitmap(current_color, squares[to].type(), from, 1);
+
+    // undo move
+    std::swap(squares[to], squares[from]);
+    squares[to] = captured_pieces.back();
+    captured_pieces.pop_back();
+    update_bitmap(current_color.flip(), squares[to].type(), to, 1);
+
     return true;
   };
 
@@ -94,7 +148,9 @@ class Board {
   std::array<Piece, 64> squares;
   std::array<uint64_t, 6> white_pieces;
   std::array<uint64_t, 6> black_pieces;
-  Color current_color;
+  Color current_color = Colors::WHITE;
+  // TODO[georgii] : change Piece() to Pieces::EMPTY
+  std::vector<Piece> captured_pieces;
 
   uint8_t str_to_index(const char* square) const {
     if ( strlen(square) != 2 )
@@ -116,17 +172,14 @@ class Board {
   }
 
   void update_bitmap(const Color& color, uint8_t piece, uint8_t index, uint8_t value) {
-    if ( color == Colors::BLACK ) {
-      if ( value )
-        black_pieces[piece] |= 1 << index;
-      else
-        black_pieces[piece] &= ~(1 << index);
-    } else {
-      if ( value )
-        white_pieces[piece] |= 1 << index;
-      else
-        white_pieces[piece] &= ~(1 << index);
-    }
+    if (piece == Pieces::EMPTY)
+      return;
+
+    auto& pieces = (color == Colors::BLACK) ? black_pieces : white_pieces;
+    if (value)
+      pieces[piece] |= (1ULL << index);
+    else
+      pieces[piece] &= ~(1ULL << index);
   }
 };
 

@@ -69,6 +69,7 @@ public:
 };
 
 namespace Pieces {
+    constexpr Piece EMPTY        = Piece();
     constexpr Piece BLACK_PAWN   = Piece(0);
     constexpr Piece WHITE_PAWN   = Piece(1);
     constexpr Piece BLACK_KNIGHT = Piece(2);
