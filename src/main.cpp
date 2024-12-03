@@ -2,6 +2,7 @@
 #include "piece.h"
 #include "square.h"
 #include "move.h"
+#include "board.h"
 
 using namespace BBD; // DON'T LEAVE THIS HERE
 
@@ -15,6 +16,8 @@ int main(int argc, char* argv[]) {
     */
 
     using namespace BBD::Squares;
+
+    Board board;
 
     Move move(D8, E6, MoveTypes::NO_TYPE);
     std::cout << move.to_string() << "\n"; // d8e6
