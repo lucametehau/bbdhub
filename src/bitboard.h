@@ -34,6 +34,14 @@ namespace BBD {
             return __builtin_ctzll(mask);
         }
 
+        void set_bit(Square index, bool value) {
+            if (value) {
+                mask |= Bitboard(index);
+            } else {
+                mask &= ~(1ULL << index);
+            }
+        }
+
         // Define operators
         Bitboard operator & (const Bitboard &other) const { return mask & other.mask; }
         Bitboard operator | (const Bitboard &other) const { return mask | other.mask; }

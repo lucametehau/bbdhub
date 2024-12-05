@@ -3,10 +3,10 @@
 namespace BBD {
 
 class Color {
-private:
-    uint8_t m_color;
-    
-public:
+ private:
+    bool m_color;
+
+ public:
     constexpr Color() = default;
     constexpr Color(uint8_t color) : m_color(color) {}
 
@@ -17,13 +17,13 @@ public:
     /// flips the color
     /// \return
     Color flip() {
-      return Color(~m_color);
+        return Color(!m_color);
     }
 };
 
 namespace Colors {
 constexpr Color BLACK = Color(0);
 constexpr Color WHITE = Color(1);
-};
+}
 
 }

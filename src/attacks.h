@@ -25,7 +25,7 @@ namespace BBD::attacks {
         constexpr uint8_t file_a = 0, file_h = 7;
         constexpr uint8_t rank_1 = 0, rank_8 = 7;
 
-        for (Square sq = Squares::A1; sq <= Squares::H8; ++sq) {
+        for (Square sq = Squares::A1; sq <= Squares::H8; sq++) {
             const uint8_t file = sq.file(), rank = sq.rank();
             if (file != file_a) {
                 if (rank < rank_8)
@@ -51,7 +51,7 @@ namespace BBD::attacks {
             {-2, -1}, {-2, 1}, {-1, 2}, {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}
         }};
 
-        for (Square sq = Squares::A1; sq <= Squares::H8; ++sq) {
+        for (Square sq = Squares::A1; sq <= Squares::H8; sq++) {
             const uint8_t file = sq.file(), rank = sq.rank();
 
             for (auto [d_rank, d_file] : knight_delta) {
@@ -66,7 +66,7 @@ namespace BBD::attacks {
             {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}
         }};
 
-        for (Square sq = Squares::A1; sq <= Squares::H8; ++sq) {
+        for (Square sq = Squares::A1; sq <= Squares::H8; sq++) {
             const uint8_t file = sq.file(), rank = sq.rank();
 
             for (auto [d_rank, d_file] : king_delta) {
@@ -84,7 +84,7 @@ namespace BBD::attacks {
     */
 
     void init_slider_attacks() {
-        for (Square sq = Squares::A1; sq <= Squares::H8; ++sq) {
+        for (Square sq = Squares::A1; sq <= Squares::H8; sq++) {
             Bitboard sq_mask(sq);
             rank_mask[sq.rank()] |= sq_mask;
             file_mask[sq.file()] |= sq_mask;

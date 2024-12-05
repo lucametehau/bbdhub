@@ -1,6 +1,6 @@
 #pragma once
 #include "square.h"
-
+#include "piece.h"
 namespace BBD {
 
     /*
@@ -37,7 +37,7 @@ namespace BBD {
 
         constexpr bool is_promo() const { return type() & 4;}
 
-        constexpr PieceType promotion_piece() const { assert(is_promo()); return PieceType((type() & 3) + 2); }
+        constexpr PieceType promotion_piece() const { assert(is_promo()); return PieceType((type() & 3) + 1); }
 
         std::string to_string() {
             std::string move_str;
