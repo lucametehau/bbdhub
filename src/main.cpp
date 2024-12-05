@@ -7,6 +7,30 @@
 
 using namespace BBD; // DON'T LEAVE THIS HERE
 
+uint64_t perft(Board &board, int depth, bool root = true)
+{
+    if (depth == 0)
+        return 1;
+    MoveList moves;
+    int nr_moves = board.gen_legal_moves(moves);
+
+    uint64_t nodes = 0;
+    for (int i = 0; i < nr_moves; i++)
+    {
+        Move move = moves[i];
+        if (!board.is_legal(move))
+            continue;
+
+        board.make_move(move);
+        uint64_t x = perft(board, depth - 1, false);
+        if (root)
+            std::cout << move.to_string() << " : " << x << "\n";
+        nodes += x;
+        board.undo_move(move);
+    }
+    return nodes;
+}
+
 int main(int argc, char *argv[])
 {
     BBD::attacks::init();
@@ -20,21 +44,9 @@ int main(int argc, char *argv[])
 
     using namespace BBD::attacks;
     using namespace BBD::Squares;
-    king_attacks[E2].print();
-    knight_attacks[E4].print();
-    Bitboard occ = (1ull << E3) | (1ull << D5);
-    generate_attacks<PieceTypes::BISHOP>(G2, occ).print();
-    generate_attacks<PieceTypes::BISHOP>(E4, occ).print();
-    generate_attacks<PieceTypes::ROOK>(E4, occ).print();
-    generate_attacks<PieceTypes::ROOK>(D1, occ).print();
-
     Board board;
-
-    Move move(D8, E6, MoveTypes::NO_TYPE);
-    std::cout << move.to_string() << "\n"; // d8e6
-    Move move2(Squares::E2, Squares::E4, MoveTypes::NO_TYPE);
-    std::cout << move2.to_string() << "\n"; // e2e4
-    move = Move(E2, E1, MoveTypes::PROMO_ROOK);
-    std::cout << move.to_string() << "\n"; // e2e1q
+    // board.make_move(Move(C2, C3, MoveTypes::NO_TYPE));
+    // board.make_move(Move(A7, A6, MoveTypes::NO_TYPE));
+    std::cout << perft(board, 4) << "\n";
     return 0;
 }

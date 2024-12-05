@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 ############################################################################
 # setting up formatting
+
 file(GLOB_RECURSE ALL_SOURCE_FILES
         ${PROJECT_SOURCE_DIR}/src/*.cpp
         ${PROJECT_SOURCE_DIR}/src/*.h
@@ -27,6 +28,7 @@ add_custom_target(format-apply
 
 set(SOURCES
     src/main.cpp
+    src/board.cpp
 )
 
 add_executable(bbd ${SOURCES})

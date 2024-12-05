@@ -32,7 +32,7 @@ class Bitboard
     }
 
     // Return least significant bit
-    unsigned long long lsb()
+    const unsigned long long lsb() const
     {
         if (mask == 0)
             return -1;
@@ -40,11 +40,16 @@ class Bitboard
     }
 
     // Return index of least significant bit
-    int lsb_index()
+    const int lsb_index() const
     {
         if (mask == 0)
             return -1;
         return __builtin_ctzll(mask);
+    }
+
+    uint8_t count() const
+    {
+        return __builtin_popcountll(mask);
     }
 
     void set_bit(Square index, bool value)
@@ -101,6 +106,13 @@ class Bitboard
     {
         mask ^= other.mask;
         return *this;
+    }
+
+    template <Direction dir> constexpr Bitboard shift(Color color) const
+    {
+        if (color == Colors::BLACK)
+            return dir > 0 ? mask >> dir : mask << static_cast<int8_t>(-dir);
+        return dir > 0 ? mask << dir : mask >> static_cast<int8_t>(-dir);
     }
 
     // Print bitboard for debugging

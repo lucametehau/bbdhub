@@ -18,6 +18,8 @@ class Board
     {
         captured_pieces.reserve(300);
         squares.fill(Pieces::NO_PIECE);
+        pieces[Colors::BLACK].fill(Bitboard(0ull));
+        pieces[Colors::WHITE].fill(Bitboard(0ull));
 
         // white
         squares[Squares::A1] = Pieces::WHITE_ROOK;
@@ -52,7 +54,7 @@ class Board
         // bitmaps
         for (Square sq = 0; sq < 64; sq++)
         {
-            if (!squares[sq].color())
+            if (!squares[sq])
                 continue;
             if (squares[sq].color() == Colors::WHITE)
             {
@@ -187,12 +189,32 @@ class Board
         return true;
     };
 
+    Bitboard get_pinned_pieces() const;
+
+    Bitboard get_checkers() const;
+
+    int gen_legal_moves(MoveList &moves);
+
+    /// Checks if the move is legal
+    /// \param move
+    /// \return
+    bool is_legal(Move move) const;
+
     /// Returns the piece at square
     /// \param square
     /// \return
     Piece at(Square square) const
     {
         return squares[square];
+    }
+
+    /// Improve by keeping track of this incrementally
+    Bitboard all_pieces(Color color) const
+    {
+        Bitboard mask(0ull);
+        for (PieceType p = PieceTypes::PAWN; p <= PieceTypes::KING; p++)
+            mask |= pieces[color][p];
+        return mask;
     }
 
     /// Returns the color of the current player
@@ -208,13 +230,5 @@ class Board
     std::array<std::array<Bitboard, 6>, 2> pieces;
     Color current_color;
     std::vector<Piece> captured_pieces;
-
-    /// Checks if the move is legal
-    /// \param move
-    /// \return
-    bool is_legal(const Move &move) const
-    {
-        return true;
-    }
 };
 } // namespace BBD

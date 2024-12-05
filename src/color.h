@@ -10,18 +10,18 @@ class Color
 
   public:
     constexpr Color() = default;
-    constexpr Color(uint8_t color) : m_color(color)
+    constexpr Color(bool color) : m_color(color)
     {
     }
 
-    operator uint8_t() const
+    operator bool() const
     {
         return m_color;
     }
 
     /// flips the color
     /// \return
-    Color flip()
+    const Color flip() const
     {
         return Color(!m_color);
     }
