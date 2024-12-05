@@ -17,6 +17,12 @@ class Board {
 - color flip function
 ```
 
+#### Bitboard
+```cpp
+// birboard.h 
+- set_bit function
+```
+
 #### Piece
 ```cpp
 // piece.h
@@ -28,8 +34,7 @@ class Board {
 
 ### 🔄 in Progress
 
-- Rename EMPTY to NO_PIECE
-- review storing pieces in board.h
+- clang - format
 
 ---
 
