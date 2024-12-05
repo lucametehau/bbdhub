@@ -41,6 +41,8 @@ namespace BBD::Zobrist {
         
 
         // en_passant
+
+        return hash;
     }
 
 };
