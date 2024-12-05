@@ -3,6 +3,7 @@
 #include "square.h"
 #include "move.h"
 #include "attacks.h"
+#include "board.h"
 
 using namespace BBD; // DON'T LEAVE THIS HERE
 
@@ -27,5 +28,13 @@ int main(int argc, char* argv[]) {
     generate_attacks<PieceTypes::ROOK>(E4, occ).print();
     generate_attacks<PieceTypes::ROOK>(D1, occ).print();
 
+    Board board;
+
+    Move move(D8, E6, MoveTypes::NO_TYPE);
+    std::cout << move.to_string() << "\n"; // d8e6
+    Move move2(Squares::E2, Squares::E4, MoveTypes::NO_TYPE);
+    std::cout << move2.to_string() << "\n"; // e2e4
+    move = Move(E2, E1, MoveTypes::PROMO_ROOK);
+    std::cout << move.to_string() << "\n"; // e2e1q
     return 0;
 }

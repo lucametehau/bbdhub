@@ -4,7 +4,8 @@ project(bbd LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 set(SOURCES
-    src/main.cpp
+#    src/main.cpp
+    tests/board_test.cpp
 )
 
 add_executable(bbd ${SOURCES})
