@@ -32,10 +32,24 @@ class Board {
 - NO_PIECE piece
 ```
 
+#### Cmake
+``` Cmake
+# CmakeFile.txt
+- added testing with enable_tesing()
+    now can run tests with 'ctest'
+    
+- run format-check:
+    cmake --build . --target format-check
+
+- run formatting:
+    cmake --build . --target format-check
+
+```
+
 ### 🔄 in Progress
 
-- clang - format
+- chilling
 
 ---
 
-## Last Updated: December 4, 2024
+## Last Updated: December 5, 2024
