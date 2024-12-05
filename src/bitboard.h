@@ -2,81 +2,122 @@
 #include "square.h"
 #include <cassert>
 
-namespace BBD {
+namespace BBD
+{
 
-class Bitboard {
-private:
-  unsigned long long mask;
+class Bitboard
+{
+  private:
+    unsigned long long mask;
 
-public:
-  constexpr Bitboard() = default;
-  constexpr Bitboard(Square square) : mask(1ULL << square) {
-    assert(square < 64);
-  }
-  constexpr Bitboard(unsigned long long mask) : mask(mask) {}
-
-  // Check if a square has a piece
-  bool has_square(Square square) const { return (mask >> square) & 1; }
-
-  constexpr operator unsigned long long() const { return mask; }
-
-  // Return least significant bit
-  unsigned long long lsb() {
-    if (mask == 0)
-      return -1;
-    return mask & -mask;
-  }
-
-  // Return index of least significant bit
-  int lsb_index() {
-    if (mask == 0)
-      return -1;
-    return __builtin_ctzll(mask);
-  }
-
-  void set_bit(Square index, bool value) {
-    if (value) {
-      mask |= Bitboard(index);
-    } else {
-      mask &= ~(1ULL << index);
+  public:
+    constexpr Bitboard() = default;
+    constexpr Bitboard(Square square) : mask(1ULL << square)
+    {
+        assert(square < 64);
     }
-  }
+    constexpr Bitboard(unsigned long long mask) : mask(mask)
+    {
+    }
 
-  // Define operators
-  Bitboard operator&(const Bitboard &other) const { return mask & other.mask; }
-  Bitboard operator|(const Bitboard &other) const { return mask | other.mask; }
-  Bitboard operator^(const Bitboard &other) const { return mask ^ other.mask; }
-  Bitboard operator~() const { return ~mask; }
-  Bitboard operator<<(const int8_t shift) const { return mask << shift; }
-  Bitboard operator>>(const int8_t shift) const { return mask >> shift; }
+    // Check if a square has a piece
+    bool has_square(Square square) const
+    {
+        return (mask >> square) & 1;
+    }
 
-  Bitboard &operator&=(const Bitboard &other) {
-    mask &= other.mask;
-    return *this;
-  }
+    constexpr operator unsigned long long() const
+    {
+        return mask;
+    }
 
-  Bitboard &operator|=(const Bitboard &other) {
-    mask |= other.mask;
-    return *this;
-  }
+    // Return least significant bit
+    unsigned long long lsb()
+    {
+        if (mask == 0)
+            return -1;
+        return mask & -mask;
+    }
 
-  Bitboard &operator^=(const Bitboard &other) {
-    mask ^= other.mask;
-    return *this;
-  }
+    // Return index of least significant bit
+    int lsb_index()
+    {
+        if (mask == 0)
+            return -1;
+        return __builtin_ctzll(mask);
+    }
 
-  // Print bitboard for debugging
-  void print() {
-    for (int rank = 7; rank >= 0; rank--) {
-      for (int file = 0; file < 8; file++) {
-        if (mask & (1ull << (8 * rank + file)))
-          std::cout << "1 ";
+    void set_bit(Square index, bool value)
+    {
+        if (value)
+        {
+            mask |= Bitboard(index);
+        }
         else
-          std::cout << "0 ";
-      }
-      std::cout << "\n";
+        {
+            mask &= ~(1ULL << index);
+        }
     }
-    std::cout << "------------------\n";
-  }
+
+    // Define operators
+    Bitboard operator&(const Bitboard &other) const
+    {
+        return mask & other.mask;
+    }
+    Bitboard operator|(const Bitboard &other) const
+    {
+        return mask | other.mask;
+    }
+    Bitboard operator^(const Bitboard &other) const
+    {
+        return mask ^ other.mask;
+    }
+    Bitboard operator~() const
+    {
+        return ~mask;
+    }
+    Bitboard operator<<(const int8_t shift) const
+    {
+        return mask << shift;
+    }
+    Bitboard operator>>(const int8_t shift) const
+    {
+        return mask >> shift;
+    }
+
+    Bitboard &operator&=(const Bitboard &other)
+    {
+        mask &= other.mask;
+        return *this;
+    }
+
+    Bitboard &operator|=(const Bitboard &other)
+    {
+        mask |= other.mask;
+        return *this;
+    }
+
+    Bitboard &operator^=(const Bitboard &other)
+    {
+        mask ^= other.mask;
+        return *this;
+    }
+
+    // Print bitboard for debugging
+    void print()
+    {
+        for (int rank = 7; rank >= 0; rank--)
+        {
+            for (int file = 0; file < 8; file++)
+            {
+                if (mask & (1ull << (8 * rank + file)))
+                    std::cout << "1 ";
+                else
+                    std::cout << "0 ";
+            }
+            std::cout << "\n";
+        }
+        std::cout << "------------------\n";
+    }
 };
 } // namespace BBD
