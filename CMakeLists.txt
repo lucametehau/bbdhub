@@ -5,7 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(SOURCES
 #    src/main.cpp
-    tests/board_test.cpp
+#    tests/board_test.cpp
+     tests/zobrist_hash_test.cpp
 )
 
 add_executable(bbd ${SOURCES})

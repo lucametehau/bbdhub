@@ -13,7 +13,7 @@ namespace BBD {
 class Board {
  public:
 
-    constexpr Board() {
+     Board() {
         captured_pieces.reserve(300);
         squares.fill(Pieces::NO_PIECE);
 
