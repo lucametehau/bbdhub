@@ -1,7 +1,7 @@
 #pragma once
-#include <cstdint>
-#include <array>
 #include "color.h"
+#include <array>
+#include <cstdint>
 
 namespace BBD {
 
@@ -18,28 +18,27 @@ For example: WHITE_KING = 2 * KING + WHITE = 11.
 */
 
 class PieceType {
- public:
-    uint8_t m_piece_type;
+public:
+  uint8_t m_piece_type;
 
- public:
-    constexpr PieceType() = default;
-    constexpr PieceType(uint8_t id) : m_piece_type(id) {}
+public:
+  constexpr PieceType() = default;
+  constexpr PieceType(uint8_t id) : m_piece_type(id) {}
 
-    char to_char() {
-        constexpr std::array<char, 6> char_map = std::array{'p', 'n', 'b', 'r', 'q', 'k'};
-        return char_map[m_piece_type];
-    }
+  char to_char() {
+    constexpr std::array<char, 6> char_map =
+        std::array{'p', 'n', 'b', 'r', 'q', 'k'};
+    return char_map[m_piece_type];
+  }
 
-    constexpr bool operator==(const PieceType& other) const {
-        return m_piece_type == other.m_piece_type;
-    }
-    constexpr PieceType(const PieceType& other) = default;
+  constexpr bool operator==(const PieceType &other) const {
+    return m_piece_type == other.m_piece_type;
+  }
+  constexpr PieceType(const PieceType &other) = default;
 
-    constexpr PieceType& operator=(const PieceType& other) = default;
+  constexpr PieceType &operator=(const PieceType &other) = default;
 
-    operator uint8_t() const {
-        return m_piece_type;
-    }
+  operator uint8_t() const { return m_piece_type; }
 };
 
 namespace PieceTypes {
@@ -49,29 +48,31 @@ constexpr PieceType BISHOP = PieceType(2);
 constexpr PieceType ROOK = PieceType(3);
 constexpr PieceType QUEEN = PieceType(4);
 constexpr PieceType KING = PieceType(5);
-};
+}; // namespace PieceTypes
 
 class Piece {
- private:
-    uint8_t m_piece;
- public:
-    constexpr Piece() = default;
-    constexpr Piece(uint8_t id) : m_piece(id) {}
+private:
+  uint8_t m_piece;
 
-    constexpr Piece(const Piece& other) = default;
-    constexpr Piece& operator=(const Piece& other) = default;
+public:
+  constexpr Piece() = default;
+  constexpr Piece(uint8_t id) : m_piece(id) {}
 
-    PieceType type() const { return PieceType(m_piece / 2); }
-    Color color() const { return m_piece & 1; } // TODO: Make color
-    operator bool() const { return m_piece != 255; }
+  constexpr Piece(const Piece &other) = default;
+  constexpr Piece &operator=(const Piece &other) = default;
 
-    constexpr bool operator==(const Piece& other) const {
-        return m_piece == other.m_piece;
-    }
-    char to_char() const {
-        return color() == Colors::BLACK ? toupper(type().to_char()) : type().to_char(); // TODO: Change to color
-    }
-    ~Piece() = default;
+  PieceType type() const { return PieceType(m_piece / 2); }
+  Color color() const { return m_piece & 1; } // TODO: Make color
+  operator bool() const { return m_piece != 255; }
+
+  constexpr bool operator==(const Piece &other) const {
+    return m_piece == other.m_piece;
+  }
+  char to_char() const {
+    return color() == Colors::BLACK ? toupper(type().to_char())
+                                    : type().to_char(); // TODO: Change to color
+  }
+  ~Piece() = default;
 };
 
 namespace Pieces {
@@ -88,6 +89,6 @@ constexpr Piece BLACK_QUEEN = Piece(8);
 constexpr Piece WHITE_QUEEN = Piece(9);
 constexpr Piece BLACK_KING = Piece(10);
 constexpr Piece WHITE_KING = Piece(11);
-};
+}; // namespace Pieces
 
 }; // namespace BBD
