@@ -111,6 +111,7 @@ int Board::gen_legal_moves(MoveList &moves)
     const Bitboard non_promo_pawns = pawns & ~attacks::rank_mask[rank7],
                    promo_pawns = pawns & attacks::rank_mask[rank7];
 
+    // pawn pushes
     {
         Bitboard single_push = non_promo_pawns.shift<NORTH>(color) & empty;
         Bitboard double_push = (single_push & attacks::rank_mask[rank3]).shift<NORTH>(color) & empty & quiet_mask;
@@ -131,6 +132,7 @@ int Board::gen_legal_moves(MoveList &moves)
         }
     }
 
+    // pawn captures
     {
         Bitboard west_captured = (non_promo_pawns & ~attacks::file_mask[file_a]).shift<NORTHWEST>(color) & noisy_mask;
         Bitboard east_captured = (non_promo_pawns & ~attacks::file_mask[file_h]).shift<NORTHEAST>(color) & noisy_mask;
@@ -150,6 +152,7 @@ int Board::gen_legal_moves(MoveList &moves)
         }
     }
 
+    // promotions
     {
         Bitboard west_promo = (promo_pawns & ~attacks::file_mask[file_a]).shift<NORTHWEST>(color) & noisy_mask;
         Bitboard east_promo = (promo_pawns & ~attacks::file_mask[file_h]).shift<NORTHEAST>(color) & noisy_mask;
@@ -185,6 +188,7 @@ int Board::gen_legal_moves(MoveList &moves)
         }
     }
 
+    // knights, only unpinned
     Bitboard mask = pieces[color][PieceTypes::KNIGHT] & ~pinned;
     while (mask)
     {
@@ -194,6 +198,7 @@ int Board::gen_legal_moves(MoveList &moves)
         mask ^= Bitboard(sq);
     }
 
+    // all other pieces
     for (PieceType pt = PieceTypes::BISHOP; pt <= PieceTypes::QUEEN; pt++)
     {
         mask = pieces[color][pt];
@@ -201,6 +206,7 @@ int Board::gen_legal_moves(MoveList &moves)
         {
             Square sq = mask.lsb_index();
             Bitboard attacks = attacks::generate_attacks(pt, sq, occ) & (quiet_mask | noisy_mask);
+            // a slider can only move on the squares on the pin
             if (pinned.has_square(sq))
                 attacks &= attacks::line_mask[king_square][sq];
             nr_moves = add_moves(moves, sq, attacks);

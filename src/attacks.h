@@ -169,7 +169,18 @@ inline void init_line_masks()
                 const Square sq_to = Square(new_rank, new_file);
                 between_mask[sq][sq_to] = mask & ~Bitboard(sq);
                 mask |= Bitboard(sq_to);
-                line_mask[sq][sq_to] = mask;
+                new_file += d_file, new_rank += d_rank;
+            }
+            new_file = file, new_rank = rank;
+            while (inside_board(new_rank, new_file))
+            {
+                mask |= Bitboard(Square(new_rank, new_file));
+                new_file -= d_file, new_rank -= d_rank;
+            }
+            new_file += d_file, new_rank += d_rank;
+            while (inside_board(new_rank, new_file))
+            {
+                line_mask[sq][Square(new_rank, new_file)] = mask;
                 new_file += d_file, new_rank += d_rank;
             }
         }

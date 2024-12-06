@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15...3.31)
 
 add_executable(board_tests
         board_test.cpp
+        ../src/board.cpp
 )
 
 target_include_directories(board_tests PRIVATE

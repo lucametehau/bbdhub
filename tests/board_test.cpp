@@ -1,6 +1,8 @@
+#include "../src/attacks.h"
 #include "../src/board.h"
 #include "../src/move.h"
 #include <cassert>
+#include <chrono>
 #include <iostream>
 
 using namespace BBD;
@@ -261,6 +263,55 @@ void test_promotion()
     assert(board.at(Squares::E7).color() == Colors::WHITE);
 
     std::cout << "Promotion test passed!\n\n";
+}
+
+uint64_t perft(Board &board, int depth, bool root = true)
+{
+    if (depth == 0)
+        return 1;
+    MoveList moves;
+    int nr_moves = board.gen_legal_moves(moves);
+
+    uint64_t nodes = 0;
+    for (int i = 0; i < nr_moves; i++)
+    {
+        Move move = moves[i];
+        if (!board.is_legal(move))
+            continue;
+
+        board.make_move(move);
+        uint64_t x = perft(board, depth - 1, false);
+        if (root)
+            std::cout << move.to_string() << " : " << x << "\n";
+        nodes += x;
+        board.undo_move(move);
+    }
+    return nodes;
+}
+
+void test_perft()
+{
+    Board board;
+    using namespace BBD::attacks;
+    using namespace BBD::Squares;
+    assert(perft(board, 4) == 197821);
+    board.make_move(Move(A2, A4, MoveTypes::NO_TYPE));
+    board.make_move(Move(G8, F6, MoveTypes::NO_TYPE));
+    board.make_move(Move(A4, A5, MoveTypes::NO_TYPE));
+    board.make_move(Move(F6, G8, MoveTypes::NO_TYPE));
+    board.make_move(Move(A5, A6, MoveTypes::NO_TYPE));
+    board.make_move(Move(G8, F6, MoveTypes::NO_TYPE));
+    board.make_move(Move(A6, B7, MoveTypes::NO_TYPE));
+    board.make_move(Move(F6, G8, MoveTypes::NO_TYPE));
+    board.make_move(Move(B7, A8, MoveTypes::PROMO_QUEEN));
+    board.make_move(Move(B8, A6, MoveTypes::NO_TYPE));
+    board.make_move(Move(A8, E4, MoveTypes::NO_TYPE));
+    auto start_time = std::chrono::system_clock::now();
+    assert(perft(board, 4) == 612637);
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time)
+                         .count() /
+                     1000.0
+              << "s\n";
 }
 
 int main()
