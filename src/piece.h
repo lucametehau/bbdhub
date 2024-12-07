@@ -92,7 +92,7 @@ class Piece
     }
     char to_char() const
     {
-        return color() == Colors::BLACK ? toupper(type().to_char()) : type().to_char(); // TODO: Change to color
+        return color() == Colors::WHITE ? toupper(type().to_char()) : type().to_char(); // TODO: Change to color
     }
     ~Piece() = default;
 };
