@@ -86,6 +86,7 @@ namespace BBD
 
 	namespace Squares
 	{
+		constexpr Square NO_SQUARE = Square(64);
 		constexpr Square A1 = Square(0);
 		constexpr Square B1 = Square(1);
 		constexpr Square C1 = Square(2);
