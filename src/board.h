@@ -19,6 +19,9 @@ class Board
         captured_pieces.reserve(300);
         squares.fill(Pieces::NO_PIECE);
 
+        castling_rights = 0b1111; // bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
+        en_passant_square = Squares::NO_SQUARE; // no square is available initially 
+
         // white
         squares[Squares::A1] = Pieces::WHITE_ROOK;
         squares[Squares::B1] = Pieces::WHITE_KNIGHT;
@@ -72,13 +75,61 @@ class Board
     /// \return
     bool make_move(const Move &move)
     {
+        // record the board state before the move is made 
+        BoardState current_state {Pieces::NO_PIECE, castling_rights, en_passant_square};
+        // record the current state
+        board_state_array.push_back(current_state);
+        // clear previous target en_passant
+        en_passant_square = Squares::NO_SQUARE;
+
         Square from = move.from();
         Square to = move.to();
 
+        // castling 0x1111 - bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
+        // update castling when King moves
+        if (squares[from].type() == PieceTypes::KING) {
+            if (current_color == Colors::WHITE) {
+                castling_rights &= 0b1100; // remove for white
+            } else {
+                castling_rights &= 0b0011; // remove for black
+            }
+        }
+        // update castling when Rook moves
+        if (squares[from].type() == PieceTypes::ROOK) {
+            if (from == Squares::A1 && current_color == Colors::WHITE) { // White queen side 
+                castling_rights &= 0b1101;
+            } else if (from == Squares::H1 && current_color == Colors::WHITE) { // White king side 
+                castling_rights &= 0b1110; 
+            } else if (from == Squares::A8 && current_color == Colors::BLACK) { // Black queen side
+                castling_rights &= 0b0111;
+            } else if (from == Squares::H8 && current_color == Colors::BLACK) { // Black king side 
+                castling_rights &= 0b1011; 
+            }
+        }
+
         // update bitmap for captured piece
-        if (squares[to] != Pieces::NO_PIECE)
+        if (squares[to] != Pieces::NO_PIECE) {
             pieces[current_color.flip()][squares[to].type()].set_bit(to, false);
-        captured_pieces.push_back(squares[to]);
+            board_state_array.back().captured = squares[to];
+        }
+
+        // update castling when Rook is captured
+        if (board_state_array.back().captured.type() == PieceTypes::ROOK) {
+            Color color_captured = board_state_array.back().captured.color(); 
+            if (color_captured == Colors::WHITE) {
+                if (to == Squares::A1) { // White queen side 
+                    castling_rights &= 0b1101;
+                } else if (to == Squares::H1) { // White king side 
+                    castling_rights &= 0b1110; 
+                }
+            } else if (color_captured == Colors::BLACK) {
+                if (to == Squares::A8) { // Black queen side 
+                    castling_rights &= 0b0111;
+                } else if (to == Squares::H8) { // Black king side 
+                    castling_rights &= 0b1011; 
+                }
+            }
+        }
 
         switch (move.type())
         {
@@ -100,7 +151,8 @@ class Board
         case ENPASSANT: {
             auto to_pos = to + 8 - 16 * current_color;
             pieces[current_color.flip()][PieceTypes::PAWN].set_bit(to_pos, false);
-            captured_pieces.push_back(squares[to_pos]);
+            // captured_pieces.push_back(squares[to_pos]);
+            board_state_array.back().captured = squares[to_pos];
             squares[to_pos] = Pieces::NO_PIECE;
             break;
         }
@@ -109,12 +161,18 @@ class Board
         case PROMO_ROOK:
         case PROMO_QUEEN:
             pieces[current_color][PieceTypes::PAWN].set_bit(from, false);
-            captured_pieces.push_back(squares[from]);
+            // captured_pieces.push_back(squares[from]);
             squares[from] = (current_color ? Piece(2 * move.promotion_piece() + 1) : Piece(2 * move.promotion_piece()));
             pieces[current_color][move.promotion_piece()].set_bit(to, true);
             break;
         default:
             break;
+        }
+
+        // check for 2 square move
+        if (squares[from].type() == PieceTypes::PAWN && std::abs(from - to) == 16) {
+            //board_state_array.back().en_passant = (to + from) / 2;
+            en_passant_square = Square((to + from) / 2); // we update it for the next move 
         }
 
         // update the bitmap for moving piece
@@ -208,13 +266,17 @@ class Board
     std::array<std::array<Bitboard, 6>, 2> pieces;
     Color current_color;
     std::vector<Piece> captured_pieces;
+    uint8_t castling_rights; 
+    Square en_passant_square; 
 
-    /// Checks if the move is legal
-    /// \param move
-    /// \return
-    bool is_legal(const Move &move) const
-    {
-        return true;
-    }
+    struct BoardState {
+        Piece captured;
+        uint8_t castling;
+        Square en_passant;
+        BoardState(Piece captured, uint8_t castling, Square en_passant) : captured(captured), castling(castling), en_passant(en_passant) {}
+    };
+
+    std::vector<BoardState> board_state_array;
+
 };
 } // namespace BBD

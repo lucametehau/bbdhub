@@ -1,19 +1,24 @@
-#include <iostream>
-#include <cassert>
 #include "../src/board.h"
 #include "../src/move.h"
-
+#include <cassert>
+#include <iostream>
 
 using namespace BBD;
 
-void print_board(const Board& board) {
-    for (int rank = 7; rank >= 0; rank--) {
+void print_board(const Board &board)
+{
+    for (int rank = 7; rank >= 0; rank--)
+    {
         std::cout << rank + 1 << "  ";
-        for (int file = 0; file < 8; file++) {
+        for (int file = 0; file < 8; file++)
+        {
             Piece piece = board.at(rank * 8 + file);
-            if (piece != Pieces::NO_PIECE) {
+            if (piece != Pieces::NO_PIECE)
+            {
                 std::cout << piece.to_char() << ' ';
-            } else {
+            }
+            else
+            {
                 std::cout << ". ";
             }
         }
@@ -22,19 +27,28 @@ void print_board(const Board& board) {
     std::cout << "\n   a b c d e f g h\n\n";
 }
 
-bool verify_position(const Board& board, const std::string& fen) {
+bool verify_position(const Board &board, const std::string &fen)
+{
     int idx = 0;
-    for (int rank = 7; rank >= 0; rank--) {
-        for (int file = 0; file < 8; file++) {
-            if (idx >= fen.length()) return false;
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            if (idx >= fen.length())
+                return false;
 
             Piece piece = board.at(rank * 8 + file);
             char expected = fen[idx++];
 
-            if (expected == '.') {
-                if (piece) return false;
-            } else {
-                if (!piece || piece.to_char() != expected) return false;
+            if (expected == '.')
+            {
+                if (piece)
+                    return false;
+            }
+            else
+            {
+                if (!piece || piece.to_char() != expected)
+                    return false;
             }
         }
         idx++;
@@ -42,8 +56,8 @@ bool verify_position(const Board& board, const std::string& fen) {
     return true;
 }
 
-
-void test_basic_moves() {
+void test_basic_moves()
+{
     std::cout << "Testing basic moves...\n";
 
     Board board;
@@ -71,7 +85,8 @@ void test_basic_moves() {
     std::cout << "Basic moves test passed!\n\n";
 }
 
-void test_captures() {
+void test_captures()
+{
     std::cout << "Testing captures...\n";
 
     Board board;
@@ -106,7 +121,8 @@ void test_captures() {
     std::cout << "Captures test passed!\n\n";
 }
 
-void test_castling() {
+void test_castling()
+{
     std::cout << "Testing castling...\n";
 
     Board board;
@@ -147,12 +163,12 @@ void test_castling() {
     std::cout << "Castling test passed!\n\n";
 }
 
-void test_enpassant() {
+void test_enpassant()
+{
     std::cout << "Testing castling...\n";
 
     Board board;
     print_board(board);
-
 
     // do white
     Move clear1(Squares::E2, Squares::E5, NO_TYPE);
@@ -213,7 +229,8 @@ void test_enpassant() {
     std::cout << "Castling test passed!\n\n";
 }
 
-void test_promotion() {
+void test_promotion()
+{
     std::cout << "Testing promotion...\n";
 
     Board board;
@@ -246,7 +263,8 @@ void test_promotion() {
     std::cout << "Promotion test passed!\n\n";
 }
 
-int main() {
+int main()
+{
     std::cout << "Starting board tests...\n\n";
 
     test_basic_moves();
