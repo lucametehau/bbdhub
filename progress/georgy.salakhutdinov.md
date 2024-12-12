@@ -1,6 +1,7 @@
 Current progress
 
-- Implemented CMake
+- Implemented CMake file
 - Reviewed Board Class pull request 
+- Currently Implementing Zobrist hashing and updating Board 
 
-Last updat: December 4th, 2024
+Last update: December 5th, 2024
