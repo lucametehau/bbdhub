@@ -59,7 +59,7 @@ if(TEST_TARGETS)
     add_dependencies(run-tests ${TEST_TARGETS})
 endif()
 
-add_dependencies(bbd run-tests)
+#add_dependencies(bbd run-tests)
 ############################################################################
 
 
