@@ -6,21 +6,9 @@
 using namespace BBD;
 using namespace BBD::Tests;
 
-class BoardTest : public ::testing::Test
+TEST(BoardTest, BasicMoves)
 {
-  protected:
-    Board board;
-
-    void SetUp() override
-    {
-    }
-    void TearDown() override
-    {
-    }
-};
-
-TEST_F(BoardTest, BasicMoves)
-{
+	Board board;
     Move pawn_move(Squares::E2, Squares::E4, NO_TYPE);
     board.make_move(pawn_move);
 
@@ -38,8 +26,9 @@ TEST_F(BoardTest, BasicMoves)
     EXPECT_EQ(board.fullmoves_counter(), 0);
 }
 
-TEST_F(BoardTest, Captures)
+TEST(BoardTest, Captures)
 {
+	Board board;
     Move setup1(Squares::E2, Squares::E4, NO_TYPE);
     Move setup2(Squares::D7, Squares::D5, NO_TYPE);
     board.make_move(setup1);
@@ -63,8 +52,9 @@ TEST_F(BoardTest, Captures)
     EXPECT_EQ(board.at(Squares::D5), Pieces::BLACK_PAWN);
 }
 
-TEST_F(BoardTest, Castling)
+TEST(BoardTest, Castling)
 {
+	Board board;
     Move clear1(Squares::E2, Squares::E4, NO_TYPE);
     Move clear2(Squares::G1, Squares::F3, NO_TYPE);
     Move clear3(Squares::F1, Squares::E2, NO_TYPE);
@@ -91,8 +81,9 @@ TEST_F(BoardTest, Castling)
     EXPECT_FALSE(board.at(Squares::G1));
 }
 
-TEST_F(BoardTest, WhiteEnPassant)
+TEST(BoardTest, WhiteEnPassant)
 {
+	Board board;
     Move clear1(Squares::E2, Squares::E5, NO_TYPE);
     Move clear2(Squares::F7, Squares::F5, NO_TYPE);
     Move en_passant(Squares::E5, Squares::F6, ENPASSANT);
@@ -113,8 +104,9 @@ TEST_F(BoardTest, WhiteEnPassant)
     EXPECT_EQ(board.at(Squares::E5), Pieces::WHITE_PAWN);
     EXPECT_FALSE(board.at(Squares::F6));
 }
-TEST_F(BoardTest, BlackEnPassant)
+TEST(BoardTest, BlackEnPassant)
 {
+	Board board;
     Move clear1(Squares::G2, Squares::G4, NO_TYPE);
     Move clear2(Squares::F7, Squares::F4, NO_TYPE);
     Move clear3(Squares::E2, Squares::E4, NO_TYPE);
@@ -138,8 +130,9 @@ TEST_F(BoardTest, BlackEnPassant)
     EXPECT_FALSE(board.at(Squares::E3));
 }
 
-TEST_F(BoardTest, Promotion)
+TEST(BoardTest, Promotion)
 {
+	Board board;
     Move setup1(Squares::E2, Squares::E7, NO_TYPE);
     board.make_move(setup1);
     Move black_move(Squares::H7, Squares::H5, NO_TYPE);

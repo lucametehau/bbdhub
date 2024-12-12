@@ -6,28 +6,15 @@
 using namespace BBD;
 using namespace BBD::Tests;
 
-class FENTest : public ::testing::Test
+TEST(FENTest, InitialPosition)
 {
-  protected:
-    Board board;
-
-    void SetUp() override
-    {
-    }
-
-    void TearDown() override
-    {
-    }
-};
-
-TEST_F(FENTest, InitialPosition)
-{
+	Board default_board;
     Board fen_board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0");
 
-    EXPECT_TRUE(is_equal(board, fen_board));
+    EXPECT_TRUE(is_equal(default_board, fen_board));
 }
 
-TEST_F(FENTest, CustomPosition)
+TEST(FENTest, CustomPosition)
 {
     Board fen_board("r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 3");
 
