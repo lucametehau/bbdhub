@@ -38,11 +38,21 @@ namespace BBD::Zobrist {
         }
 
         // castling
-        
+        // bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
+        uint8_t castling_rights = board.get_castling_rights();
+        if (0b0001 & castling_rights) hash ^= castling_keys[0];
+        if ((1 << 1) & castling_rights) hash ^= castling_keys[1];
+        if ((1 << 2) & castling_rights) hash ^= castling_keys[2];
+        if ((1 << 3) & castling_rights) hash ^= castling_keys[3];
 
         // en_passant
+        Square en_passant = board.get_en_passant_square();
+        if (en_passant != Squares::NO_SQUARE) {
+            hash ^= en_passant_keys[en_passant];
+        }
 
         return hash;
     }
+    // TODO incremental thing 
 
 };

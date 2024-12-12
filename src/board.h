@@ -14,6 +14,14 @@ namespace BBD
 class Board
 {
   public:
+    const uint8_t& get_castling_rights() const {
+        return castling_rights;
+    }
+
+    const Square& get_en_passant_square() const {
+        return en_passant_square;
+    }
+
     Board()
     {
         squares.fill(Pieces::NO_PIECE);
