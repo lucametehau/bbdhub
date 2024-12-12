@@ -24,7 +24,6 @@ class Board
 
     Board()
     {
-        captured_pieces.reserve(300);
         half_moves.reserve(300);
         squares.fill(Pieces::NO_PIECE);
         board_state_array.reserve(500);
@@ -83,7 +82,6 @@ class Board
 
     constexpr Board(const std::string &fen)
     {
-        captured_pieces.reserve(300);
         half_moves.reserve(300);
         squares.fill(Pieces::NO_PIECE);
 
