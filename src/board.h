@@ -14,11 +14,23 @@ namespace BBD
 class Board
 {
   public:
-    constexpr Board()
+    const uint8_t& get_castling_rights() const {
+        return castling_rights;
+    }
+
+    const Square& get_en_passant_square() const {
+        return en_passant_square;
+    }
+
+    Board()
     {
         captured_pieces.reserve(300);
         half_moves.reserve(300);
         squares.fill(Pieces::NO_PIECE);
+        board_state_array.reserve(500);
+
+        castling_rights = 0b1111; // bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
+        en_passant_square = Squares::NO_SQUARE; // no square is available initially 
 
         // white
         squares[Squares::A1] = Pieces::WHITE_ROOK;
@@ -181,16 +193,61 @@ class Board
     /// \return
     bool make_move(const Move &move)
     {
+        // record the board state before the move is made 
+        BoardState current_state {Pieces::NO_PIECE, castling_rights, en_passant_square};
+        // record the current state
+        board_state_array.push_back(current_state);
+        // clear previous target en_passant
+        en_passant_square = Squares::NO_SQUARE;
+
         Square from = move.from();
         Square to = move.to();
 
-        // update bitmap for captured piece
-        if (squares[to] != Pieces::NO_PIECE)
-        {
-            pieces[current_color.flip()][squares[to].type()].set_bit(to, false);
-            half_moves.push_back(-1);
+        // castling 0x1111 - bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
+        // update castling when King moves
+        if (squares[from].type() == PieceTypes::KING) {
+            if (current_color == Colors::WHITE) {
+                castling_rights &= 0b1100; // remove for white
+            } else {
+                castling_rights &= 0b0011; // remove for black
+            }
         }
-        captured_pieces.push_back(squares[to]);
+        // update castling when Rook moves
+        if (squares[from].type() == PieceTypes::ROOK) {
+            if (from == Squares::A1 && current_color == Colors::WHITE) { // White queen side 
+                castling_rights &= 0b1101;
+            } else if (from == Squares::H1 && current_color == Colors::WHITE) { // White king side 
+                castling_rights &= 0b1110; 
+            } else if (from == Squares::A8 && current_color == Colors::BLACK) { // Black queen side
+                castling_rights &= 0b0111;
+            } else if (from == Squares::H8 && current_color == Colors::BLACK) { // Black king side 
+                castling_rights &= 0b1011; 
+            }
+        }
+
+        // update bitmap for captured piece
+        if (squares[to] != Pieces::NO_PIECE) {
+            pieces[current_color.flip()][squares[to].type()].set_bit(to, false);
+            board_state_array.back().captured = squares[to];
+        }
+
+        // update castling when Rook is captured
+        if (board_state_array.back().captured.type() == PieceTypes::ROOK) {
+            Color color_captured = board_state_array.back().captured.color(); 
+            if (color_captured == Colors::WHITE) {
+                if (to == Squares::A1) { // White queen side 
+                    castling_rights &= 0b1101;
+                } else if (to == Squares::H1) { // White king side 
+                    castling_rights &= 0b1110; 
+                }
+            } else if (color_captured == Colors::BLACK) {
+                if (to == Squares::A8) { // Black queen side 
+                    castling_rights &= 0b0111;
+                } else if (to == Squares::H8) { // Black king side 
+                    castling_rights &= 0b1011; 
+                }
+            }
+        }
 
         switch (move.type())
         {
@@ -212,7 +269,8 @@ class Board
         case ENPASSANT: {
             auto to_pos = to + 8 - 16 * current_color;
             pieces[current_color.flip()][PieceTypes::PAWN].set_bit(to_pos, false);
-            captured_pieces.push_back(squares[to_pos]);
+            // captured_pieces.push_back(squares[to_pos]);
+            board_state_array.back().captured = squares[to_pos];
             squares[to_pos] = Pieces::NO_PIECE;
             break;
         }
@@ -221,12 +279,16 @@ class Board
         case PROMO_ROOK:
         case PROMO_QUEEN:
             pieces[current_color][PieceTypes::PAWN].set_bit(from, false);
-            captured_pieces.push_back(squares[from]);
+            // captured_pieces.push_back(squares[from]);
             squares[from] = (current_color ? Piece(2 * move.promotion_piece() + 1) : Piece(2 * move.promotion_piece()));
             pieces[current_color][move.promotion_piece()].set_bit(to, true);
             break;
-        default:
-            break;
+        }
+
+        // check for 2 square move
+        if (squares[from].type() == PieceTypes::PAWN && std::abs((int)from - (int)to) == 16) {
+            //board_state_array.back().en_passant = (to + from) / 2;
+            en_passant_square = Square(((int)to + (int)from) / 2); // we update it for the next move 
         }
 
         // update the bitmap for moving piece
@@ -262,6 +324,12 @@ class Board
 
         current_color = current_color.flip();
 
+        // previous state
+        BoardState prev_state = board_state_array.back();
+        castling_rights = prev_state.castling; 
+        en_passant_square = prev_state.en_passant;
+        Piece prev_captured = prev_state.captured; 
+
         switch (move.type())
         {
         case CASTLE:
@@ -281,37 +349,42 @@ class Board
         case ENPASSANT: {
             auto to_pos = to + 8 - 16 * current_color;
             pieces[current_color.flip()][PieceTypes::PAWN].set_bit(to_pos, true);
-            squares[to_pos] = captured_pieces.back();
-            captured_pieces.pop_back();
+            squares[to_pos] = prev_captured;
             break;
         }
         case PROMO_KNIGHT:
         case PROMO_BISHOP:
         case PROMO_ROOK:
         case PROMO_QUEEN:
-            pieces[current_color][squares[to].type()].set_bit(to, true);
-            squares[to] = captured_pieces.back();
-            captured_pieces.pop_back();
-            break;
-
-        default:
+            //pieces[current_color][squares[to].type()].set_bit(to, true);
+            auto promotion_piece_type = move.promotion_piece(); 
+            pieces[current_color][promotion_piece_type].set_bit(to, false);
+            squares[from] = prev_captured;
+            if (prev_captured != Pieces::NO_PIECE) {
+                pieces[current_color.flip()][prev_captured.type()].set_bit(to, true);
+            }
+            if (current_color == Colors::WHITE) {
+                squares[to] = Pieces::WHITE_PAWN;
+                } else {
+                squares[to] = Pieces::BLACK_PAWN;
+            }
             break;
         }
         pieces[current_color][squares[to].type()].set_bit(to, false);
         pieces[current_color][squares[to].type()].set_bit(from, true);
 
-        // undo move
-        std::swap(squares[to], squares[from]);
-        squares[to] = captured_pieces.back();
-        captured_pieces.pop_back();
+        if (move.type() == ENPASSANT) {
+            squares[from] = squares[to];
+            squares[to] = Pieces::NO_PIECE;
+            board_state_array.pop_back();
+        } else {
+            // undo move
+            std::swap(squares[to], squares[from]);
 
-        if (squares[from].type() == PieceTypes::PAWN)
-            half_moves.pop_back();
-
-        if (squares[to] != Pieces::NO_PIECE)
-        {
-            pieces[current_color.flip()][squares[to].type()].set_bit(to, true);
-            half_moves.pop_back();
+            squares[to] = prev_captured;
+            board_state_array.pop_back();
+            if (squares[to] != Pieces::NO_PIECE)
+                pieces[current_color.flip()][squares[to].type()].set_bit(to, true);
         }
 
         return true;
@@ -345,7 +418,17 @@ class Board
     std::array<Piece, 64> squares;
     std::array<std::array<Bitboard, 6>, 2> pieces;
     Color current_color;
-    std::vector<Piece> captured_pieces;
+    uint8_t castling_rights; 
+    Square en_passant_square; 
+
+    struct BoardState {
+        Piece captured;
+        uint8_t castling;
+        Square en_passant;
+        BoardState(Piece captured, uint8_t castling, Square en_passant) : captured(captured), castling(castling), en_passant(en_passant) {}
+    };
+
+    std::vector<BoardState> board_state_array;
 
     std::vector<uint8_t> half_moves;
     uint8_t full_moves = 0;

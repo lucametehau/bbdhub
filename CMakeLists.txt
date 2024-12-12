@@ -27,7 +27,7 @@ add_custom_target(format-apply
 ############################################################################
 
 set(SOURCES
-    src/main.cpp
+    tests/board_test.cpp
 )
 
 add_executable(bbd ${SOURCES})
