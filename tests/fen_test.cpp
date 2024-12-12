@@ -13,16 +13,18 @@ class FENTest : public ::testing::Test
 
     void SetUp() override
     {
-        board = Board();
+    }
+
+    void TearDown() override
+    {
     }
 };
 
 TEST_F(FENTest, InitialPosition)
 {
-    Board default_board;
     Board fen_board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0");
 
-    EXPECT_TRUE(is_equal(default_board, fen_board));
+    EXPECT_TRUE(is_equal(board, fen_board));
 }
 
 TEST_F(FENTest, CustomPosition)

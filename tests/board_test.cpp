@@ -13,7 +13,9 @@ class BoardTest : public ::testing::Test
 
     void SetUp() override
     {
-        board = Board();
+    }
+    void TearDown() override
+    {
     }
 };
 

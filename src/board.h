@@ -341,9 +341,11 @@ class Board
         return full_moves;
     }
 
+    ~Board() = default;
+
   private:
-    std::array<Piece, 64> squares;
-    std::array<std::array<Bitboard, 6>, 2> pieces;
+    std::array<Piece, 64> squares{};
+    std::array<std::array<Bitboard, 6>, 2> pieces{};
     Color current_color;
     std::vector<Piece> captured_pieces;
 
