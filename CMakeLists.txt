@@ -4,6 +4,7 @@ project(bbd VERSION 1.0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 ############################################################################
+find_program(CLANG_FORMAT "clang-format")
 # setting up formatting
 file(GLOB_RECURSE ALL_SOURCE_FILES
         ${PROJECT_SOURCE_DIR}/src/*.cpp
@@ -13,13 +14,13 @@ file(GLOB_RECURSE ALL_SOURCE_FILES
 )
 
 add_custom_target(format-check
-        COMMAND ${CLANG_FORMAT} -style=Microsoft -n -Werror ${ALL_SOURCE_FILES}
+        COMMAND ${CLANG_FORMAT} -n --style=Microsoft -Werror ${ALL_SOURCE_FILES}
         COMMENT "Checking code formatting"
         VERBATIM
 )
 
 add_custom_target(format-apply
-        COMMAND ${CLANG_FORMAT} -style=Microsoft -i ${ALL_SOURCE_FILES}
+        COMMAND ${CLANG_FORMAT} -i --style=Microsoft ${ALL_SOURCE_FILES}
         COMMENT "Formatting the code"
         VERBATIM
 )
@@ -58,7 +59,7 @@ if(TEST_TARGETS)
     add_dependencies(run-tests ${TEST_TARGETS})
 endif()
 
-add_dependencies(bbd run-tests)
+#add_dependencies(bbd run-tests)
 ############################################################################
 
 
