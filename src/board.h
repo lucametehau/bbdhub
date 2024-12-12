@@ -16,8 +16,8 @@ class Board
   public:
     Board()
     {
-        captured_pieces.reserve(300);
         squares.fill(Pieces::NO_PIECE);
+        board_state_array.reserve(500);
 
         castling_rights = 0b1111; // bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
         en_passant_square = Squares::NO_SQUARE; // no square is available initially 
@@ -165,14 +165,12 @@ class Board
             squares[from] = (current_color ? Piece(2 * move.promotion_piece() + 1) : Piece(2 * move.promotion_piece()));
             pieces[current_color][move.promotion_piece()].set_bit(to, true);
             break;
-        default:
-            break;
         }
 
         // check for 2 square move
-        if (squares[from].type() == PieceTypes::PAWN && std::abs(from - to) == 16) {
+        if (squares[from].type() == PieceTypes::PAWN && std::abs((int)from - (int)to) == 16) {
             //board_state_array.back().en_passant = (to + from) / 2;
-            en_passant_square = Square((to + from) / 2); // we update it for the next move 
+            en_passant_square = Square(((int)to + (int)from) / 2); // we update it for the next move 
         }
 
         // update the bitmap for moving piece
@@ -197,6 +195,12 @@ class Board
 
         current_color = current_color.flip();
 
+        // previous state
+        BoardState prev_state = board_state_array.back();
+        castling_rights = prev_state.castling; 
+        en_passant_square = prev_state.en_passant;
+        Piece prev_captured = prev_state.captured; 
+
         switch (move.type())
         {
         case CASTLE:
@@ -216,31 +220,43 @@ class Board
         case ENPASSANT: {
             auto to_pos = to + 8 - 16 * current_color;
             pieces[current_color.flip()][PieceTypes::PAWN].set_bit(to_pos, true);
-            squares[to_pos] = captured_pieces.back();
-            captured_pieces.pop_back();
+            squares[to_pos] = prev_captured;
             break;
         }
         case PROMO_KNIGHT:
         case PROMO_BISHOP:
         case PROMO_ROOK:
         case PROMO_QUEEN:
-            pieces[current_color][squares[to].type()].set_bit(to, true);
-            squares[to] = captured_pieces.back();
-            captured_pieces.pop_back();
-            break;
-
-        default:
+            //pieces[current_color][squares[to].type()].set_bit(to, true);
+            auto promotion_piece_type = move.promotion_piece(); 
+            pieces[current_color][promotion_piece_type].set_bit(to, false);
+            squares[from] = prev_captured;
+            if (prev_captured != Pieces::NO_PIECE) {
+                pieces[current_color.flip()][prev_captured.type()].set_bit(to, true);
+            }
+            if (current_color == Colors::WHITE) {
+                squares[to] = Pieces::WHITE_PAWN;
+                } else {
+                squares[to] = Pieces::BLACK_PAWN;
+            }
             break;
         }
         pieces[current_color][squares[to].type()].set_bit(to, false);
         pieces[current_color][squares[to].type()].set_bit(from, true);
 
-        // undo move
-        std::swap(squares[to], squares[from]);
-        squares[to] = captured_pieces.back();
-        captured_pieces.pop_back();
-        if (squares[to] != Pieces::NO_PIECE)
-            pieces[current_color.flip()][squares[to].type()].set_bit(to, true);
+        if (move.type() == ENPASSANT) {
+            squares[from] = squares[to];
+            squares[to] = Pieces::NO_PIECE;
+            board_state_array.pop_back();
+        } else {
+            // undo move
+            std::swap(squares[to], squares[from]);
+
+            squares[to] = prev_captured;
+            board_state_array.pop_back();
+            if (squares[to] != Pieces::NO_PIECE)
+                pieces[current_color.flip()][squares[to].type()].set_bit(to, true);
+        }
 
         return true;
     };
@@ -265,7 +281,6 @@ class Board
     std::array<Piece, 64> squares;
     std::array<std::array<Bitboard, 6>, 2> pieces;
     Color current_color;
-    std::vector<Piece> captured_pieces;
     uint8_t castling_rights; 
     Square en_passant_square; 
 
