@@ -87,4 +87,29 @@ inline bool is_equal(const Board &board1, const Board &board2)
 
     return true;
 }
+
+inline uint64_t perft(Board &board, int depth, bool print)
+{
+    if (depth == 0)
+        return 1;
+    MoveList moves;
+    int nr_moves = board.gen_legal_moves(moves);
+
+    uint64_t nodes = 0;
+    for (int i = 0; i < nr_moves; i++)
+    {
+        Move move = moves[i];
+        if (!board.is_legal(move))
+            continue;
+
+        board.make_move(move);
+        uint64_t x = perft(board, depth - 1, false);
+        if (print)
+            std::cout << move.to_string() << " : " << x << "\n";
+        nodes += x;
+        board.undo_move(move);
+    }
+
+    return nodes;
+}
 } // namespace BBD::Tests

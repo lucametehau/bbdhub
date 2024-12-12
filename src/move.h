@@ -82,4 +82,6 @@ class Move
 
 constexpr Move NULL_MOVE = Move(); // useful later on
 
+typedef std::array<Move, 256> MoveList;
+
 }; // namespace BBD

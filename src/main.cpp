@@ -1,3 +1,4 @@
+#include "../tests/test_utils.h"
 #include "attacks.h"
 #include "board.h"
 #include "move.h"
@@ -17,24 +18,8 @@ int main(int argc, char *argv[])
     -H <input history file> -m <output move file>."; return 0;
     }
     */
+    Board board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    std::cout << Tests::perft(board, 4, false) << "\n"; // should be 4085603
 
-    using namespace BBD::attacks;
-    using namespace BBD::Squares;
-    king_attacks[E2].print();
-    knight_attacks[E4].print();
-    Bitboard occ = (1ull << E3) | (1ull << D5);
-    generate_attacks<PieceTypes::BISHOP>(G2, occ).print();
-    generate_attacks<PieceTypes::BISHOP>(E4, occ).print();
-    generate_attacks<PieceTypes::ROOK>(E4, occ).print();
-    generate_attacks<PieceTypes::ROOK>(D1, occ).print();
-
-    Board board;
-
-    Move move(D8, E6, MoveTypes::NO_TYPE);
-    std::cout << move.to_string() << "\n"; // d8e6
-    Move move2(Squares::E2, Squares::E4, MoveTypes::NO_TYPE);
-    std::cout << move2.to_string() << "\n"; // e2e4
-    move = Move(E2, E1, MoveTypes::PROMO_ROOK);
-    std::cout << move.to_string() << "\n"; // e2e1q
     return 0;
 }

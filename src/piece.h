@@ -43,6 +43,12 @@ class PieceType
 
     constexpr PieceType &operator=(const PieceType &other) = default;
 
+    PieceType operator++(int)
+    {
+        m_piece_type++;
+        return *this;
+    }
+
     operator uint8_t() const
     {
         return m_piece_type;
@@ -79,8 +85,8 @@ class Piece
     }
     Color color() const
     {
-        return m_piece & 1;
-    } // TODO: Make color
+        return Color(m_piece & 1);
+    }
     operator bool() const
     {
         return m_piece != 255;

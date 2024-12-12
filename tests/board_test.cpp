@@ -72,7 +72,7 @@ TEST_F(BoardTest, Castling)
     board.make_move(clear3);
     board.make_move(clear4);
 
-    Move castle(Squares::H1, Squares::F1, CASTLE);
+    Move castle(Squares::E1, Squares::G1, CASTLE);
     board.make_move(castle);
 
     EXPECT_EQ(board.at(Squares::G1), Pieces::WHITE_KING);
@@ -143,10 +143,12 @@ TEST_F(BoardTest, Promotion)
     Move black_move(Squares::H7, Squares::H5, NO_TYPE);
     board.make_move(black_move);
 
-    Move promote(Squares::E7, Squares::E8, PROMO_QUEEN);
+    print_board(board);
+
+    Move promote(Squares::E7, Squares::F8, PROMO_QUEEN);
     board.make_move(promote);
 
-    EXPECT_EQ(board.at(Squares::E8), Pieces::WHITE_QUEEN);
+    EXPECT_EQ(board.at(Squares::F8), Pieces::WHITE_QUEEN);
     EXPECT_FALSE(board.at(Squares::E7));
 
     board.undo_move(promote);
