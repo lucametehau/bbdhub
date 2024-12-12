@@ -4,16 +4,15 @@
 namespace BBD
 {
 
-Bitboard Board::get_pinned_pieces() const
+const Bitboard Board::get_pinned_pieces() const
 {
     const Color color = player_color(), enemy = color.flip();
     const Bitboard us = all_pieces(color), them = all_pieces(enemy);
     const Square king_square = pieces[color][PieceTypes::KING].lsb_index();
     Bitboard pinned(0ull);
-    Bitboard slider_attacks = (attacks::generate_attacks(PieceTypes::BISHOP, king_square, them) &
-                               (pieces[enemy][PieceTypes::BISHOP] | pieces[enemy][PieceTypes::QUEEN])) |
-                              (attacks::generate_attacks(PieceTypes::ROOK, king_square, them) &
-                               (pieces[enemy][PieceTypes::ROOK] | pieces[enemy][PieceTypes::QUEEN]));
+    Bitboard slider_attacks =
+        (attacks::generate_attacks(PieceTypes::BISHOP, king_square, them) & diagonal_sliders(enemy)) |
+        (attacks::generate_attacks(PieceTypes::ROOK, king_square, them) & orthogonal_sliders(enemy));
 
     while (slider_attacks)
     {
@@ -26,7 +25,7 @@ Bitboard Board::get_pinned_pieces() const
     return pinned;
 }
 
-Bitboard Board::get_checkers() const
+const Bitboard Board::get_checkers() const
 {
     const Color color = player_color(), enemy = color.flip();
     const Square king_square = pieces[color][PieceTypes::KING].lsb_index();
@@ -43,6 +42,7 @@ int Board::gen_legal_moves(MoveList &moves)
     const Color color = player_color(), enemy = color.flip();
     const Square king_square = pieces[color][PieceTypes::KING].lsb_index();
     Bitboard us = all_pieces(color), them = all_pieces(enemy), occ = us | them, empty = ~occ;
+    Bitboard attacked(0ull);
     int nr_moves = 0;
 
     auto add_moves = [&](MoveList &moves, Square sq, Bitboard mask) {
@@ -57,9 +57,8 @@ int Board::gen_legal_moves(MoveList &moves)
 
     // king moves
     {
-        Bitboard attacked(0ull);
         // pawn attacks
-        attacked = 0;
+        attacked = get_pawn_attacks(enemy);
 
         for (PieceType pt = PieceTypes::KNIGHT; pt <= PieceTypes::KING; pt++)
         {
@@ -71,13 +70,13 @@ int Board::gen_legal_moves(MoveList &moves)
                 mask ^= Bitboard(sq);
             }
         }
+
         nr_moves = add_moves(moves, king_square,
                              attacks::generate_attacks(PieceTypes::KING, king_square, occ) & ~(us | attacked));
     }
 
     Bitboard noisy_mask, quiet_mask;
-    Bitboard checkers = get_checkers();
-    int checkers_count = checkers.count();
+    int checkers_count = checkers().count();
 
     if (checkers_count == 2)
     {
@@ -86,24 +85,19 @@ int Board::gen_legal_moves(MoveList &moves)
     }
     else if (checkers_count == 1)
     {
-        noisy_mask = checkers;
-        quiet_mask = at(checkers.lsb_index()).type() == PieceTypes::KNIGHT
+        noisy_mask = checkers();
+        // can't do any non-king quiet move if we have a knight checking
+        quiet_mask = at(checkers().lsb_index()).type() == PieceTypes::KNIGHT
                          ? Bitboard(0ull)
-                         : attacks::between_mask[king_square][checkers.lsb_index()];
-
-        // enpassant to cancel check
+                         : attacks::between_mask[king_square][checkers().lsb_index()];
     }
     else
     {
         noisy_mask = them;
         quiet_mask = empty;
-
-        // enpassant stuff again
-
-        // castling
     }
 
-    const Bitboard pinned = get_pinned_pieces();
+    const Bitboard pinned = pinned_pieces();
 
     const int rank7 = color == Colors::WHITE ? 6 : 1, rank3 = color == Colors::WHITE ? 2 : 5;
     const int file_a = color == Colors::WHITE ? 0 : 7, file_h = 7 - file_a;
@@ -149,6 +143,22 @@ int Board::gen_legal_moves(MoveList &moves)
             Square sq = east_captured.lsb_index();
             moves[nr_moves++] = Move(sq.shift<SOUTHWEST>(color), sq, MoveTypes::NO_TYPE);
             east_captured ^= Bitboard(sq);
+        }
+    }
+
+    // en passant
+    {
+        Square ep = get_en_passant_square();
+        if (ep != Squares::NO_SQUARE)
+        {
+            Bitboard ep_pawns = non_promo_pawns & attacks::generate_attacks_pawn(enemy, ep);
+
+            while (ep_pawns)
+            {
+                Square sq = ep_pawns.lsb_index();
+                moves[nr_moves++] = Move(sq, ep, MoveTypes::ENPASSANT);
+                ep_pawns ^= Bitboard(sq);
+            }
         }
     }
 
@@ -213,23 +223,57 @@ int Board::gen_legal_moves(MoveList &moves)
             mask ^= Bitboard(sq);
         }
     }
+
+    // castling
+    {
+        auto has_castling_right = [&](const int castle_rights, const Color color, const int side) {
+            return color == Colors::WHITE ? (castle_rights >> side) & 1 : (castle_rights >> (2 + side)) & 1;
+        };
+        // king side
+        if (has_castling_right(get_castling_rights(), color, 0))
+        {
+            Bitboard b = attacks::between_mask[king_square][king_square + 3];
+            if (!(attacked & (Bitboard(king_square) | b)) && !(occ & b))
+                moves[nr_moves++] = Move(king_square, king_square + 2, MoveTypes::CASTLE);
+        }
+        if (has_castling_right(get_castling_rights(), color, 1))
+        {
+            Bitboard b = attacks::between_mask[king_square][king_square - 3];
+            if (!(attacked & (Bitboard(king_square) | b)) && !(occ & (Bitboard(king_square - 3) | b)))
+                moves[nr_moves++] = Move(king_square, king_square - 2, MoveTypes::CASTLE);
+        }
+    }
     return nr_moves;
 }
 
+// only needed for pawn moves really
 bool Board::is_legal(Move move) const
 {
     const Square from = move.from(), to = move.to();
     const Piece piece = at(from);
     const Square king_square = pieces[player_color()][PieceTypes::KING].lsb_index();
 
-    if (!get_checkers())
+    // specifically for pawns, they need to move on the checking line
+    if (!checkers())
     {
         if (attacks::line_mask[from][to].has_square(king_square))
             return true;
     }
 
+    // check if doing the enpassant gets us in check
+    if (move.type() == MoveTypes::ENPASSANT)
+    {
+        const Color color = player_color(), enemy = color.flip();
+        const Square sq = to.shift<SOUTH>(color);
+        const Bitboard all_no_ep =
+            (all_pieces(Colors::WHITE) | all_pieces(Colors::BLACK)) ^ Bitboard(from) ^ Bitboard(to) ^ Bitboard(sq);
+        return !(attacks::generate_attacks_rook(king_square, all_no_ep) & orthogonal_sliders(enemy)) &&
+               !(attacks::generate_attacks_bishop(king_square, all_no_ep) & diagonal_sliders(enemy));
+    }
+
+    // if not on the checking line, it shouldn't be pinned
     if (piece.type() == PieceTypes::PAWN)
-        return !get_pinned_pieces().has_square(from);
+        return !pinned_pieces().has_square(from);
 
     return true;
 }

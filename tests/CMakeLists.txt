@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 
 include(FetchContent)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) # enables LTO
+
 
 FetchContent_Declare(
         googletest
@@ -14,9 +16,18 @@ find_package(GTest REQUIRED)
 
 add_executable(tests
         board_test.cpp
+        perft_test.cpp
         ../src/board.cpp
         fen_test.cpp
 )
+
+target_compile_options(tests PRIVATE
+    -Wall
+    -Werror
+    -g
+    -O3
+)
+
 
 target_link_libraries(tests PRIVATE
         GTest::gtest_main
