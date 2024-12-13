@@ -101,6 +101,14 @@ class Board
         current_color = Colors::WHITE;
         half_moves.push_back(0);
 
+        // update land
+        land = std::array<Bitboard, 2>{0ull, 0ull};
+        for (PieceType p = PieceTypes::PAWN; p <= PieceTypes::KING; p++)
+        {
+            land[current_color] |= pieces[current_color][p];
+            land[current_color.flip()] |= pieces[current_color.flip()][p];
+        }
+
         BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square};
         board_state_array.push_back(current_state);
         checkers() = get_checkers();
@@ -229,6 +237,14 @@ class Board
         // full move counter
         full_moves = std::stoi(fullmove_counter);
 
+        // update land
+        land = std::array<Bitboard, 2>{0ull, 0ull};
+        for (PieceType p = PieceTypes::PAWN; p <= PieceTypes::KING; p++)
+        {
+            land[current_color] |= pieces[current_color][p];
+            land[current_color.flip()] |= pieces[current_color.flip()][p];
+        }
+
         BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square};
         board_state_array.push_back(current_state);
         checkers() = get_checkers();
@@ -238,7 +254,7 @@ class Board
     /// Updates the Board, assuming the move is legal
     /// \param move
     /// \return
-    bool make_move(const Move &move)
+    void make_move(const Move &move)
     {
         // record the board state before the move is made
         BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square};
@@ -341,7 +357,6 @@ class Board
         case ENPASSANT: {
             auto to_pos = to + 8 - 16 * current_color;
             pieces[current_color.flip()][PieceTypes::PAWN].set_bit(to_pos, false);
-            // captured_pieces.push_back(squares[to_pos]);
             board_state_array.back().captured = squares[to_pos];
             squares[to_pos] = Pieces::NO_PIECE;
             break;
@@ -351,7 +366,6 @@ class Board
         case PROMO_ROOK:
         case PROMO_QUEEN:
             pieces[current_color][PieceTypes::PAWN].set_bit(from, false);
-            // captured_pieces.push_back(squares[from]);
             squares[from] = (current_color ? Piece(2 * move.promotion_piece() + 1) : Piece(2 * move.promotion_piece()));
             pieces[current_color][move.promotion_piece()].set_bit(to, true);
             break;
@@ -379,16 +393,23 @@ class Board
         if (current_color == Colors::BLACK)
             full_moves++;
 
+        // update land
+        land = std::array<Bitboard, 2>{0ull, 0ull};
+        for (PieceType p = PieceTypes::PAWN; p <= PieceTypes::KING; p++)
+        {
+            land[current_color] |= pieces[current_color][p];
+            land[current_color.flip()] |= pieces[current_color.flip()][p];
+        }
+
         current_color = current_color.flip();
         pinned_pieces() = get_pinned_pieces();
         checkers() = get_checkers();
-        return true;
     };
 
     /// Updates the Board, assuming the move is legal
     /// \param move
     /// \return
-    bool undo_move(const Move &move)
+    void undo_move(const Move &move)
     {
         Square from = move.from();
         Square to = move.to();
@@ -473,14 +494,20 @@ class Board
                 pieces[current_color.flip()][squares[to].type()].set_bit(to, true);
         }
 
-        return true;
+        // update land
+        land = std::array<Bitboard, 2>{0ull, 0ull};
+        for (PieceType p = PieceTypes::PAWN; p <= PieceTypes::KING; p++)
+        {
+            land[current_color] |= pieces[current_color][p];
+            land[current_color.flip()] |= pieces[current_color.flip()][p];
+        }
     };
 
     const Bitboard get_pinned_pieces() const;
 
     const Bitboard get_checkers() const;
 
-    const Bitboard get_pawn_attacks(const Color color) const
+    const Bitboard get_pawn_attacks(const Color &color) const
     {
         const Bitboard pawns = pieces[color][PieceTypes::PAWN];
         const int file_a = color == Colors::WHITE ? 0 : 7, file_h = 7 - file_a;
@@ -493,40 +520,36 @@ class Board
     /// Checks if the move is legal
     /// \param move
     /// \return
-    bool is_legal(Move move) const;
+    bool is_legal(const Move &move) const;
 
     /// Returns the piece at square
     /// \param square
     /// \return
-    Piece at(Square square) const
+    Piece at(const Square &square) const
     {
         return squares[square];
     }
 
-    const Bitboard orthogonal_sliders(const Color color) const
+    const Bitboard orthogonal_sliders(const Color &color) const
     {
         return pieces[color][PieceTypes::ROOK] | pieces[color][PieceTypes::QUEEN];
     }
 
-    const Bitboard diagonal_sliders(const Color color) const
+    const Bitboard diagonal_sliders(const Color &color) const
     {
         return pieces[color][PieceTypes::BISHOP] | pieces[color][PieceTypes::QUEEN];
     }
 
     /// Improve by keeping track of this incrementally
-    const Bitboard all_pieces(const Color color) const
+    const Bitboard all_pieces(const Color &color) const
     {
-        Bitboard mask(0ull);
-        for (PieceType p = PieceTypes::PAWN; p <= PieceTypes::KING; p++)
-            mask |= pieces[color][p];
-        return mask;
+        return land[color];
     }
 
     /// Returns the color of the current player
     /// \return
     Color player_color() const
     {
-        // TODO[geo_kuz]: Implement move validation
         return current_color;
     }
     uint8_t halfmoves_clock() const
@@ -541,6 +564,7 @@ class Board
   private:
     std::array<Piece, 64> squares;
     std::array<std::array<Bitboard, 6>, 2> pieces;
+    std::array<Bitboard, 2> land;
     Color current_color;
     uint8_t castling_rights;
     Square en_passant_square;
@@ -561,7 +585,5 @@ class Board
 
     std::vector<int> half_moves;
     uint8_t full_moves = 0;
-
-    std::vector<Piece> captured_pieces;
 };
 } // namespace BBD

@@ -247,7 +247,7 @@ int Board::gen_legal_moves(MoveList &moves)
 }
 
 // only needed for pawn moves really
-bool Board::is_legal(Move move) const
+bool Board::is_legal(const Move &move) const
 {
     const Square from = move.from(), to = move.to();
     const Piece piece = at(from);
