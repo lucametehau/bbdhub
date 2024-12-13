@@ -69,7 +69,7 @@ class Board
         half_moves.push_back(0);
     };
 
-    constexpr Board(const std::string &fen)
+    Board(const std::string &fen)
     {
         captured_pieces.reserve(300);
         half_moves.reserve(300);
@@ -341,11 +341,16 @@ class Board
         return full_moves;
     }
 
-    ~Board() = default;
+	~Board()
+    {
+        std::cerr << "deleting\n";
+        captured_pieces.clear();
+        half_moves.clear();
+    };
 
   private:
-    std::array<Piece, 64> squares{};
-    std::array<std::array<Bitboard, 6>, 2> pieces{};
+    std::array<Piece, 64> squares;
+    std::array<std::array<Bitboard, 6>, 2> pieces;
     Color current_color;
     std::vector<Piece> captured_pieces;
 

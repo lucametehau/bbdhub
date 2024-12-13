@@ -27,34 +27,6 @@ inline void print_board(const Board &board)
     }
     std::cout << "\n   a b c d e f g h\n\n";
 }
-inline bool verify_position(const Board &board, const std::string &fen)
-{
-    int idx = 0;
-    for (int rank = 7; rank >= 0; rank--)
-    {
-        for (int file = 0; file < 8; file++)
-        {
-            if (idx >= fen.length())
-                return false;
-
-            Piece piece = board.at(rank * 8 + file);
-            char expected = fen[idx++];
-
-            if (expected == '.')
-            {
-                if (piece)
-                    return false;
-            }
-            else
-            {
-                if (!piece || piece.to_char() != expected)
-                    return false;
-            }
-        }
-        idx++;
-    }
-    return true;
-}
 inline bool is_equal(const Board &board1, const Board &board2)
 {
     for (Square sq = Squares::A1; sq <= Squares::H8; sq++)

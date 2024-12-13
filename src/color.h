@@ -25,6 +25,7 @@ class Color
     {
         return Color(!m_color);
     }
+    constexpr ~Color() = default;
 };
 
 namespace Colors

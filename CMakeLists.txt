@@ -41,8 +41,10 @@ target_compile_options(bbd PRIVATE
 
 ############################################################################
 # include format checking
-add_dependencies(bbd format-check)
-add_dependencies(format-check format-apply)
+IF (CLANG_FORMAT)
+    add_dependencies(bbd format-check)
+    add_dependencies(format-check format-apply)
+ENDIF ()
 
 ############################################################################
 # could be tested with "ctest"

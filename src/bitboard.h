@@ -119,5 +119,6 @@ class Bitboard
         }
         std::cout << "------------------\n";
     }
+    constexpr ~Bitboard() = default;
 };
 } // namespace BBD

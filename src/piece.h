@@ -99,7 +99,7 @@ class Piece
 
 namespace Pieces
 {
-constexpr Piece NO_PIECE = Piece(-1);
+constexpr Piece NO_PIECE = Piece(255);
 constexpr Piece BLACK_PAWN = Piece(0);
 constexpr Piece WHITE_PAWN = Piece(1);
 constexpr Piece BLACK_KNIGHT = Piece(2);
