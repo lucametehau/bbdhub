@@ -11,11 +11,10 @@ namespace BBD
 {
 
 // First we read the history of moves from the input file
-Board read_move_history(const std::string &filename, const std::string &output_filename)
+Board read_move_history(const std::string &filename)
 {
     std::vector<BBD::Move> move_history;
     std::ifstream input_file(filename);
-    std::ofstream output_file(output_filename);
 
     if (!input_file.is_open())
     {
@@ -38,12 +37,13 @@ Board read_move_history(const std::string &filename, const std::string &output_f
                 if (legal_moves[i].to_string() == move_str)
                 {
                     board.make_move(legal_moves[i]);
-                    output_file << legal_moves[i].to_string() << "\n";
                     break;
                 }
             }
         }
     }
+
+    input_file.close();
 
     return board;
 }
@@ -51,7 +51,7 @@ Board read_move_history(const std::string &filename, const std::string &output_f
 // Then we append the next move to the output file
 void append_move_to_file(const std::string &filename, const std::string &move)
 {
-    std::ofstream output_file(filename, std::ios::app);
+    std::ofstream output_file(filename);
     if (!output_file.is_open())
     {
         std::cerr << "Error: could not open file " << filename << std::endl;
@@ -59,6 +59,7 @@ void append_move_to_file(const std::string &filename, const std::string &move)
     }
 
     output_file << move << "\n";
+    output_file.close();
 }
 
 } // namespace BBD

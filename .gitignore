@@ -1,3 +1,5 @@
 src/main
 src/.vscode
+*.csv
+*.txt
 /build/

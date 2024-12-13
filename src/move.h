@@ -75,7 +75,7 @@ class Move
         move_str += from().to_string();
         move_str += to().to_string();
         if (is_promo())
-            move_str += promotion_piece().to_char();
+            move_str += promotion_piece() == PieceTypes::KNIGHT ? 'k' : promotion_piece().to_char();
         return move_str;
     }
 };

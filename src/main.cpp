@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    Board current_board = read_move_history(argv[2], argv[4]);
+    Board current_board = read_move_history(argv[2]);
 
     using namespace BBD::Tests;
     SearchLimiter limiter;
