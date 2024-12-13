@@ -2,6 +2,7 @@
 #include "attacks.h"
 #include "board.h"
 #include "move.h"
+#include "parsing.h"
 #include "piece.h"
 #include "search.h"
 #include "square.h"
@@ -13,13 +14,19 @@ using namespace BBD::Engine;
 int main(int argc, char *argv[])
 {
     BBD::attacks::init();
-    // Decomment this when parser is implemented!
-    /*
-    if (argc != 1) {
-        std::cerr << "Expected 5 arguments!\nYour command should look like ./BBD
-    -H <input history file> -m <output move file>."; return 0;
+
+    if (argc != 5)
+    {
+        std::cerr << "Expected 5 arguments!\n Your command should look like ./BBD - H<input history file> - m<output "
+                     "move file>.";
+        return 0;
     }
-    */
+
+    Board current_board = read_move_history(argv[2]);
+
+    std::string next_move_str = get_next_move(current_board);
+    append_move_to_file(argv[4], next_move_str);
+
     using namespace BBD::Tests;
     SearchLimiter limiter;
     limiter.set_depth(6);
