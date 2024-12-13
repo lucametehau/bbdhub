@@ -11,10 +11,11 @@ namespace BBD
 {
 
 // First we read the history of moves from the input file
-Board read_move_history(const std::string &filename)
+Board read_move_history(const std::string &filename, const std::string &output_filename)
 {
     std::vector<BBD::Move> move_history;
     std::ifstream input_file(filename);
+    std::ofstream output_file(output_filename);
 
     if (!input_file.is_open())
     {
@@ -37,6 +38,7 @@ Board read_move_history(const std::string &filename)
                 if (legal_moves[i].to_string() == move_str)
                 {
                     board.make_move(legal_moves[i]);
+                    output_file << legal_moves[i].to_string() << "\n";
                     break;
                 }
             }
@@ -59,9 +61,4 @@ void append_move_to_file(const std::string &filename, const std::string &move)
     output_file << move << "\n";
 }
 
-// We get the next move (dummy move for now) --> TO BE MODIFIED
-std::string get_next_move(const Board &board)
-{
-    return "e2e4";
-}
 } // namespace BBD
