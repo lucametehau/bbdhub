@@ -304,6 +304,7 @@ class Board
         if (squares[to] != Pieces::NO_PIECE)
         {
             pieces[current_color.flip()][squares[to].type()].set_bit(to, false);
+            land[current_color.flip()].set_bit(to, false);
             board_state_array.back().captured = squares[to];
         }
 
@@ -340,6 +341,10 @@ class Board
         case CASTLE:
             pieces[current_color][PieceTypes::KING].set_bit(from, false);
             pieces[current_color][PieceTypes::KING].set_bit(to, true);
+
+            land[current_color].set_bit(from, false);
+            land[current_color].set_bit(to, true);
+
             std::swap(squares[from], squares[to]);
             // queen's side
             if (to < from)
@@ -357,6 +362,7 @@ class Board
         case ENPASSANT: {
             auto to_pos = to + 8 - 16 * current_color;
             pieces[current_color.flip()][PieceTypes::PAWN].set_bit(to_pos, false);
+            land[current_color.flip()].set_bit(to_pos, false);
             board_state_array.back().captured = squares[to_pos];
             squares[to_pos] = Pieces::NO_PIECE;
             break;
@@ -366,8 +372,10 @@ class Board
         case PROMO_ROOK:
         case PROMO_QUEEN:
             pieces[current_color][PieceTypes::PAWN].set_bit(from, false);
+            land[current_color].set_bit(from, false);
             squares[from] = (current_color ? Piece(2 * move.promotion_piece() + 1) : Piece(2 * move.promotion_piece()));
             pieces[current_color][move.promotion_piece()].set_bit(to, true);
+            land[current_color].set_bit(to, true);
             break;
         }
 
@@ -382,6 +390,9 @@ class Board
         pieces[current_color][squares[from].type()].set_bit(from, false);
         pieces[current_color][squares[from].type()].set_bit(to, true);
 
+        land[current_color].set_bit(from, false);
+        land[current_color].set_bit(to, true);
+
         if (squares[from].type() == PieceTypes::PAWN)
             half_moves.push_back(-1);
 
@@ -392,14 +403,6 @@ class Board
         half_moves.back()++;
         if (current_color == Colors::BLACK)
             full_moves++;
-
-        // update land
-        land = std::array<Bitboard, 2>{0ull, 0ull};
-        for (PieceType p = PieceTypes::PAWN; p <= PieceTypes::KING; p++)
-        {
-            land[current_color] |= pieces[current_color][p];
-            land[current_color.flip()] |= pieces[current_color.flip()][p];
-        }
 
         current_color = current_color.flip();
         pinned_pieces() = get_pinned_pieces();
@@ -434,6 +437,9 @@ class Board
             pieces[current_color][PieceTypes::KING].set_bit(from, true);
             pieces[current_color][PieceTypes::KING].set_bit(to, false);
             std::swap(squares[from], squares[to]);
+
+            land[current_color].set_bit(from, true);
+            land[current_color].set_bit(to, false);
             // queen's side
             if (to < from)
             {
@@ -449,6 +455,7 @@ class Board
         case ENPASSANT: {
             auto to_pos = to + 8 - 16 * current_color;
             pieces[current_color.flip()][PieceTypes::PAWN].set_bit(to_pos, true);
+            land[current_color.flip()].set_bit(to_pos, true);
             squares[to_pos] = prev_captured;
             break;
         }
@@ -456,13 +463,14 @@ class Board
         case PROMO_BISHOP:
         case PROMO_ROOK:
         case PROMO_QUEEN:
-            // pieces[current_color][squares[to].type()].set_bit(to, true);
             auto promotion_piece_type = move.promotion_piece();
             pieces[current_color][promotion_piece_type].set_bit(to, false);
+            land[current_color].set_bit(to, false);
             squares[from] = prev_captured;
             if (prev_captured != Pieces::NO_PIECE)
             {
                 pieces[current_color.flip()][prev_captured.type()].set_bit(to, true);
+                land[current_color.flip()].set_bit(to, true);
             }
             if (current_color == Colors::WHITE)
             {
@@ -476,6 +484,9 @@ class Board
         }
         pieces[current_color][squares[to].type()].set_bit(to, false);
         pieces[current_color][squares[to].type()].set_bit(from, true);
+
+        land[current_color].set_bit(to, false);
+        land[current_color].set_bit(from, true);
 
         if (move.type() == ENPASSANT)
         {
@@ -491,15 +502,10 @@ class Board
             squares[to] = prev_captured;
             board_state_array.pop_back();
             if (squares[to] != Pieces::NO_PIECE)
+            {
                 pieces[current_color.flip()][squares[to].type()].set_bit(to, true);
-        }
-
-        // update land
-        land = std::array<Bitboard, 2>{0ull, 0ull};
-        for (PieceType p = PieceTypes::PAWN; p <= PieceTypes::KING; p++)
-        {
-            land[current_color] |= pieces[current_color][p];
-            land[current_color.flip()] |= pieces[current_color.flip()][p];
+                land[current_color.flip()].set_bit(to, true);
+            }
         }
     };
 
