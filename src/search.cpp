@@ -4,7 +4,7 @@
 namespace BBD::Engine
 {
 
-template <bool root_node> int SearchThread::negamax(int depth, int ply)
+template <bool root_node> int SearchThread::negamax(int alpha, int beta, int depth, int ply)
 {
     nodes++;
     if (depth == 0)
@@ -23,17 +23,23 @@ template <bool root_node> int SearchThread::negamax(int depth, int ply)
 
         board.make_move(move);
         played++;
-        int score = -negamax<false>(depth - 1, ply + 1);
+        int score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
         board.undo_move(move);
 
         if (score > best)
         {
             best = score;
 
-            if constexpr (root_node)
+            if (score > alpha)
             {
-                thread_best_move = move;
-                thread_best_score = score;
+                if constexpr (root_node)
+                {
+                    thread_best_move = move;
+                    thread_best_score = score;
+                }
+                alpha = score;
+                if (alpha >= beta)
+                    break;
             }
         }
     }
@@ -45,7 +51,7 @@ template <bool root_node> int SearchThread::negamax(int depth, int ply)
     return best;
 }
 
-void SearchThread::search(Board &_board, SearchLimiter &_limiter)
+Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
 {
     auto search_start_time = get_time_since_start();
     nodes = 0;
@@ -53,7 +59,7 @@ void SearchThread::search(Board &_board, SearchLimiter &_limiter)
     Score score;
     if (limiter.get_mode() == SearchLimiter::SearchMode::DEPTH_SEARCH)
     {
-        score = negamax<true>(limiter.get_depth(), 0);
+        score = negamax<true>(-INF, INF, limiter.get_depth(), 0);
     }
     else
     {
@@ -66,6 +72,8 @@ void SearchThread::search(Board &_board, SearchLimiter &_limiter)
         std::cout << " score mate " << (score > 0 ? (INF - score + 1) / 2 : -(INF + score + 1) / 2);
     auto time_spent = get_time_since_start() - search_start_time;
     std::cout << " nodes " << nodes << " time " << time_spent << " nps " << 1000 * nodes / time_spent << "\n\n";
+
+    return thread_best_move;
 }
 
 } // namespace BBD::Engine

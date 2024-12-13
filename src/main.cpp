@@ -34,15 +34,7 @@ int main(int argc, char *argv[])
 
     Board board("4k3/8/4K3/8/4Q3/8/8/8 w - - 0 1");
     print_board(board);
-    thread.search(board, limiter);
-
-    Board board2("4k3/8/4K3/5Q2/8/8/8/8 w - - 0 1");
-    print_board(board2);
-    thread.search(board2, limiter);
-
-    Board board3("4k3/8/4K3/4R3/8/8/8/8 w - - 0 1");
-    print_board(board3);
-    thread.search(board3, limiter);
+    std::cout << thread.search(board, limiter).to_string() << "\n";
 
     return 0;
 }
