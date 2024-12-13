@@ -7,7 +7,7 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) # enables LTO
 FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG v1.14.0  # Specify a version tag
+        GIT_TAG release-1.12.1
 )
 FetchContent_MakeAvailable(googletest)
 
@@ -17,8 +17,8 @@ find_package(GTest REQUIRED)
 add_executable(tests
         board_test.cpp
         perft_test.cpp
-        ../src/board.cpp
         fen_test.cpp
+        ../src/board.cpp
 )
 
 target_compile_options(tests PRIVATE
@@ -32,7 +32,6 @@ target_compile_options(tests PRIVATE
 target_link_libraries(tests PRIVATE
         GTest::gtest_main
         GTest::gmock
-        ${YOUR_PROJECT_LIBRARY}
 )
 
 target_include_directories(tests PRIVATE

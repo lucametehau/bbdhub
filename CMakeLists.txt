@@ -45,8 +45,11 @@ target_compile_options(bbd PRIVATE
 
 ############################################################################
 # include format checking
-add_dependencies(bbd format-check)
-add_dependencies(format-check format-apply)
+IF (CLANG_FORMAT)
+    add_dependencies(bbd format-check)
+    add_dependencies(format-check format-apply)
+ENDIF ()
+
 
 ############################################################################
 # could be tested with "ctest"
@@ -60,11 +63,9 @@ add_custom_target(run-tests
 )
 
 get_property(TEST_TARGETS DIRECTORY tests PROPERTY BUILDSYSTEM_TARGETS)
-if(TEST_TARGETS)
+if (TEST_TARGETS)
     add_dependencies(run-tests ${TEST_TARGETS})
-endif()
+endif ()
 
 add_dependencies(bbd run-tests)
 ############################################################################
-
-
