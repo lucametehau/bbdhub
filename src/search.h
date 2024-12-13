@@ -63,7 +63,7 @@ class SearchThread
     uint64_t nodes;
 
   public:
-    template <bool root_node> int negamax(int depth, int ply);
+    template <bool root_node> int negamax(int alpha, int beta, int depth, int ply);
 
     void search(Board &board, SearchLimiter &limiter);
 };
