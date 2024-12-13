@@ -51,7 +51,7 @@ template <bool root_node> int SearchThread::negamax(int alpha, int beta, int dep
     return best;
 }
 
-void SearchThread::search(Board &_board, SearchLimiter &_limiter)
+Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
 {
     auto search_start_time = get_time_since_start();
     nodes = 0;
@@ -72,6 +72,8 @@ void SearchThread::search(Board &_board, SearchLimiter &_limiter)
         std::cout << " score mate " << (score > 0 ? (INF - score + 1) / 2 : -(INF + score + 1) / 2);
     auto time_spent = get_time_since_start() - search_start_time;
     std::cout << " nodes " << nodes << " time " << time_spent << " nps " << 1000 * nodes / time_spent << "\n\n";
+
+    return thread_best_move;
 }
 
 } // namespace BBD::Engine
