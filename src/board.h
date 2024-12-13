@@ -107,7 +107,7 @@ class Board
         pinned_pieces() = get_pinned_pieces();
     };
 
-    constexpr Board(const std::string &fen)
+    Board(const std::string &fen)
     {
         half_moves.reserve(300);
         squares.fill(Pieces::NO_PIECE);
