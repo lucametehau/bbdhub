@@ -81,7 +81,9 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
         {
             try
             {
-                score = negamax<true>(-INF, INF, depth++, 0);
+                score = negamax<true>(-INF, INF, depth, 0);
+                std::cout << "info score " << score << " depth " << depth << " nodes " << nodes << " time " << get_time_since_start() - search_start_time << std::endl;
+                depth++;
             }
             catch (...)
             {
