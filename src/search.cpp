@@ -19,6 +19,7 @@ template <bool root_node> int SearchThread::negamax(int alpha, int beta, int dep
         }
     }
 
+
     MoveList moves;
     int nr_moves = board.gen_legal_moves(moves);
 
