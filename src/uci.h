@@ -11,7 +11,7 @@ namespace BBD::Engine::UCI
 void uci_loop()
 {
     std::cout << "bbd by a team of very nice people!" << std::endl;
-    std::cout << "info string Warning! This is UCI mode, not the usual tournanment mode!" << std::endl;
+    std::cout << "Warning! This is UCI mode, not the usual tournanment mode!" << std::endl;
     Board board;
     SearchLimiter limiter;
     SearchThread thread;

@@ -93,14 +93,7 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
 
         //        assert(0); // for now
     }
-    std::cout << "info bestmove " << thread_best_move.to_string();
-    if (abs(score) < MATE)
-        std::cout << " score " << score;
-    else
-        std::cout << " score mate " << (score > 0 ? (INF - score + 1) / 2 : -(INF + score + 1) / 2);
-    auto time_spent = get_time_since_start() - search_start_time;
-    std::cout << " nodes " << nodes << " time " << time_spent << " nps " << 1000 * nodes / (time_spent + !time_spent)
-              << std::endl;
+    std::cout << "bestmove " << thread_best_move.to_string() << std::endl;
 
     return thread_best_move;
 }
