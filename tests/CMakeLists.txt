@@ -18,7 +18,9 @@ add_executable(tests
         board_test.cpp
         perft_test.cpp
         fen_test.cpp
+        search_test.cpp
         ../src/board.cpp
+        ../src/search.cpp
 )
 
 target_compile_options(tests PRIVATE
@@ -26,6 +28,7 @@ target_compile_options(tests PRIVATE
     -Werror
     -g
     -O3
+    --verbose
 )
 
 
@@ -37,6 +40,8 @@ target_link_libraries(tests PRIVATE
 target_include_directories(tests PRIVATE
         ${CMAKE_SOURCE_DIR}/src
 )
+
+set_tests_properties(${Tests} PROPERTIES TIMEOUT 5)
 
 include(GoogleTest)
 gtest_discover_tests(tests)
