@@ -3,6 +3,7 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 namespace BBD::Engine::UCI {
 
