@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "test_utils.h"
 #include "eval.h"
+#include "test_utils.h"
 #include <iostream>
 
 using namespace BBD;
@@ -53,5 +53,4 @@ TEST_F(EvaluationTest, Captures)
     score = BBD::Engine::board_evaluation(board);
 
     EXPECT_EQ(score, 0);
-
 }

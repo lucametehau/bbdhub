@@ -1,19 +1,19 @@
-#pragma once 
+#pragma once
 
 #include "bitboard.h"
+#include "board.h"
 #include "color.h"
 #include "move.h"
 #include "piece.h"
 #include "square.h"
-#include "board.h"
 #include <array>
 #include <vector>
 
-
-namespace BBD::Engine 
+namespace BBD::Engine
 {
 
-int board_evaluation(const Board &board) {
+inline int board_evaluation(const Board &board)
+{
     constexpr int piece_weights[6] = {
         100, // Pawn [0]
         300, // Knight [1]
@@ -25,14 +25,15 @@ int board_evaluation(const Board &board) {
 
     int current_score = 0;
 
-    for (PieceType p = PieceTypes::PAWN; p <= PieceTypes::KING; p++) {
+    for (PieceType p = PieceTypes::PAWN; p <= PieceTypes::KING; p++)
+    {
         int white_score = board.get_piece_bitboard(Colors::WHITE, p).count();
         int black_score = board.get_piece_bitboard(Colors::BLACK, p).count();
 
-        current_score += (white_score -  black_score) * piece_weights[p];
+        current_score += (white_score - black_score) * piece_weights[p];
     }
 
     return current_score;
-} 
-
 }
+
+} // namespace BBD::Engine

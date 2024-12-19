@@ -9,7 +9,7 @@ template <bool root_node> int SearchThread::negamax(int alpha, int beta, int dep
 {
     nodes++;
     if (depth == 0)
-        return board_evaluation(board); // replace with eval when time is
+        return board_evaluation(board) * (board.player_color() == Colors::WHITE ? 1 : -1);
 
     if (limiter.get_mode() == SearchLimiter::SearchMode::TIME_SEARCH)
     {
@@ -19,7 +19,6 @@ template <bool root_node> int SearchThread::negamax(int alpha, int beta, int dep
                 throw "Timeout";
         }
     }
-
 
     MoveList moves;
     int nr_moves = board.gen_legal_moves(moves);
@@ -88,7 +87,6 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
             {
                 running = false;
             }
-
         }
 
         //        assert(0); // for now
