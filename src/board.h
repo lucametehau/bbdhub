@@ -41,6 +41,9 @@ class Board
     {
         return board_state_array.back().checkers;
     }
+    const Bitboard get_piece_bitboard(Color color, PieceType p) const {
+        return pieces[color][p];
+    }
 
     Board()
     {
@@ -588,7 +591,7 @@ class Board
     };
 
     std::vector<BoardState> board_state_array;
-
+    
     std::vector<int> half_moves;
     uint8_t full_moves = 0;
 };
