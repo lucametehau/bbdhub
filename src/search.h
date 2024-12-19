@@ -66,6 +66,11 @@ class SearchThread
     template <bool root_node> int negamax(int alpha, int beta, int depth, int ply);
 
     Move search(Board &board, SearchLimiter &limiter);
+
+    uint64_t get_nodes()
+    {
+        return nodes;
+    }
 };
 
 } // namespace BBD::Engine

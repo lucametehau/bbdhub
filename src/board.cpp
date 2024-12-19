@@ -30,11 +30,11 @@ const Bitboard Board::get_checkers() const
     const Color color = player_color(), enemy = color.flip();
     const Square king_square = pieces[color][PieceTypes::KING].lsb_index();
     const Bitboard occ = all_pieces(color) | all_pieces(enemy);
-    Bitboard attacks = pieces[enemy][PieceTypes::PAWN] & attacks::generate_attacks_pawn(color, king_square);
-    for (PieceType pt = PieceTypes::KNIGHT; pt <= PieceTypes::KING; pt++)
-        attacks |= pieces[enemy][pt] & attacks::generate_attacks(pt, king_square, occ);
 
-    return attacks;
+    return (pieces[enemy][PieceTypes::PAWN] & attacks::generate_attacks_pawn(color, king_square)) |
+           (pieces[enemy][PieceTypes::KNIGHT] & attacks::knight_attacks[king_square]) |
+           (diagonal_sliders(enemy) & attacks::generate_attacks_bishop(king_square, occ)) |
+           (orthogonal_sliders(enemy) & attacks::generate_attacks_rook(king_square, occ));
 }
 
 int Board::gen_legal_moves(MoveList &moves)
@@ -198,24 +198,37 @@ int Board::gen_legal_moves(MoveList &moves)
         }
     }
 
-    // knights, only unpinned
-    Bitboard mask = pieces[color][PieceTypes::KNIGHT] & ~pinned;
-    while (mask)
+    // normal pieces
     {
-        Square sq = mask.lsb_index();
-        nr_moves =
-            add_moves(moves, sq, attacks::generate_attacks(PieceTypes::KNIGHT, sq, occ) & (quiet_mask | noisy_mask));
-        mask ^= Bitboard(sq);
-    }
-
-    // all other pieces
-    for (PieceType pt = PieceTypes::BISHOP; pt <= PieceTypes::QUEEN; pt++)
-    {
-        mask = pieces[color][pt];
+        // knights, only unpinned
+        Bitboard mask = pieces[color][PieceTypes::KNIGHT] & ~pinned;
         while (mask)
         {
             Square sq = mask.lsb_index();
-            Bitboard attacks = attacks::generate_attacks(pt, sq, occ) & (quiet_mask | noisy_mask);
+            nr_moves = add_moves(moves, sq,
+                                 attacks::generate_attacks(PieceTypes::KNIGHT, sq, occ) & (quiet_mask | noisy_mask));
+            mask ^= Bitboard(sq);
+        }
+
+        // bishops and queens
+        mask = diagonal_sliders(color);
+        while (mask)
+        {
+            Square sq = mask.lsb_index();
+            Bitboard attacks = attacks::generate_attacks_bishop(sq, occ) & (quiet_mask | noisy_mask);
+            // a slider can only move on the squares on the pin
+            if (pinned.has_square(sq))
+                attacks &= attacks::line_mask[king_square][sq];
+            nr_moves = add_moves(moves, sq, attacks);
+            mask ^= Bitboard(sq);
+        }
+
+        // rooks and queens
+        mask = orthogonal_sliders(color);
+        while (mask)
+        {
+            Square sq = mask.lsb_index();
+            Bitboard attacks = attacks::generate_attacks_rook(sq, occ) & (quiet_mask | noisy_mask);
             // a slider can only move on the squares on the pin
             if (pinned.has_square(sq))
                 attacks &= attacks::line_mask[king_square][sq];
