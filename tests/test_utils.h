@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "../src/board.h"
+#include "../src/search.h"
 
 namespace BBD::Tests
 {

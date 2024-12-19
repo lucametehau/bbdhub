@@ -29,18 +29,18 @@ add_custom_target(format-apply
 ############################################################################
 
 set(SOURCES
-    src/main.cpp
-    src/board.cpp
-    src/search.cpp
+        src/main.cpp
+        src/board.cpp
+        src/search.cpp
 )
 
 add_executable(bbd ${SOURCES})
 
 target_compile_options(bbd PRIVATE
-    -Wall
-    -Werror
-    -g
-    -O3
+        -Wall
+        -Werror
+        -g
+        -O3
 )
 
 ############################################################################

@@ -11,6 +11,16 @@ template <bool root_node> int SearchThread::negamax(int alpha, int beta, int dep
     if (depth == 0)
         return board_evaluation(board); // replace with eval when time is
 
+    if (limiter.get_mode() == SearchLimiter::SearchMode::TIME_SEARCH)
+    {
+        if (nodes && nodes % (1 << 12))
+        {
+            if (get_time_since_start() - start_time > limiter.get_move_time())
+                throw "Timeout";
+        }
+    }
+
+
     MoveList moves;
     int nr_moves = board.gen_legal_moves(moves);
 
@@ -64,7 +74,24 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     }
     else
     {
-        assert(0); // for now
+
+        start_clock();
+        auto depth = 1;
+        auto running = true;
+        while (running)
+        {
+            try
+            {
+                score = negamax<true>(-INF, INF, depth++, 0);
+            }
+            catch (...)
+            {
+                running = false;
+            }
+
+        }
+
+        //        assert(0); // for now
     }
     std::cout << "info bestmove " << thread_best_move.to_string();
     if (abs(score) < MATE)

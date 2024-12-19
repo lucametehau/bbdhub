@@ -35,7 +35,7 @@ class SearchLimiter
 
     void set_time(std::time_t _move_time)
     {
-        move_time = _move_time;
+        move_time = _move_time - 10;
         mode = SearchMode::TIME_SEARCH;
     }
 
@@ -60,6 +60,8 @@ class SearchThread
     Score thread_best_score;
     SearchLimiter limiter;
 
+    time_t start_time;
+
     uint64_t nodes;
 
   public:
@@ -70,6 +72,11 @@ class SearchThread
     uint64_t get_nodes()
     {
         return nodes;
+    }
+
+    void start_clock()
+    {
+        start_time = get_time_since_start();
     }
 };
 
