@@ -2,4 +2,6 @@ src/main
 src/.vscode
 *.csv
 *.txt
+*.o
 /build/
+src/OpenBench/bbd
