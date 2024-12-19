@@ -1,4 +1,5 @@
 #include "search.h"
+#include "eval.h"
 #include <cassert>
 
 namespace BBD::Engine
@@ -8,7 +9,7 @@ template <bool root_node> int SearchThread::negamax(int alpha, int beta, int dep
 {
     nodes++;
     if (depth == 0)
-        return 0; // replace with eval when time is
+        return board_evaluation(board); // replace with eval when time is
 
     MoveList moves;
     int nr_moves = board.gen_legal_moves(moves);
