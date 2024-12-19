@@ -117,6 +117,11 @@ class Board
 
     Board(const std::string &fen)
     {
+        set_fen(fen);
+    }
+
+    void set_fen(const std::string &fen)
+    {
         half_moves.reserve(300);
         squares.fill(Pieces::NO_PIECE);
         pieces[Colors::WHITE].fill(Bitboard(0ull));

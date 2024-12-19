@@ -1,11 +1,8 @@
 #include "../tests/test_utils.h"
 #include "attacks.h"
-#include "board.h"
-#include "move.h"
 #include "parsing.h"
-#include "piece.h"
 #include "search.h"
-#include "square.h"
+#include "uci.h"
 #include <cstring>
 #include <iostream>
 
@@ -100,8 +97,8 @@ int main(int argc, char *argv[])
 
     if (argc != 5)
     {
-        std::cerr << "Expected 5 arguments!\n Your command should look like ./BBD -H <input history file> -m <output "
-                     "move file>.";
+        // This will assume that you are trying to use BBD in UCI mode
+        UCI::uci_loop();
         return 0;
     }
 
