@@ -22,6 +22,13 @@ enum MoveTypes : MoveType
     PROMO_QUEEN
 };
 
+enum MovegenTypes
+{
+    CAPTURE_MOVES = 1,
+    QUIET_MOVES,
+    ALL_MOVES
+};
+
 /*
 We can encode a move by the from square, the to square and the type of the move.
 This way, all the moves are unique. The encoding is simple:

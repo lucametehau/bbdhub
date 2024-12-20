@@ -94,7 +94,7 @@ inline uint64_t perft(Board &board, int depth, bool print)
     if (depth == 0)
         return 1;
     MoveList moves;
-    int nr_moves = board.gen_legal_moves(moves);
+    int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 
     uint64_t nodes = 0;
     for (int i = 0; i < nr_moves; i++)

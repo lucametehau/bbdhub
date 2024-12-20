@@ -36,20 +36,26 @@ void uci_loop()
             std::string parameter;
             uint64_t time = 0, inc = 0;
 
-            while (iss >> parameter) {
-                if (parameter == "wtime" && board.player_color() == Colors::WHITE) {
+            while (iss >> parameter)
+            {
+                if (parameter == "wtime" && board.player_color() == Colors::WHITE)
+                {
                     iss >> time;
                 }
-                else if (parameter == "btime" && board.player_color() == Colors::BLACK) {
+                else if (parameter == "btime" && board.player_color() == Colors::BLACK)
+                {
                     iss >> time;
                 }
-                else if (parameter == "winc" && board.player_color() == Colors::WHITE) {
+                else if (parameter == "winc" && board.player_color() == Colors::WHITE)
+                {
                     iss >> inc;
                 }
-                else if (parameter == "binc" && board.player_color() == Colors::BLACK) {
+                else if (parameter == "binc" && board.player_color() == Colors::BLACK)
+                {
                     iss >> inc;
                 }
-                else if (parameter == "depth") {
+                else if (parameter == "depth")
+                {
                     int depth;
                     iss >> depth;
                     limiter.set_depth(depth);
@@ -57,7 +63,7 @@ void uci_loop()
             }
             if (time || inc)
                 limiter.set_time(time / 20 + inc / 2);
-            
+
             thread.search(board, limiter);
         }
         else if (command == "position")
@@ -86,7 +92,7 @@ void uci_loop()
                     while (iss >> move_str)
                     {
                         MoveList moves;
-                        int nr_moves = board.gen_legal_moves(moves);
+                        int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
                         bool legal_move = false;
 
                         for (int i = 0; i < nr_moves; i++)
