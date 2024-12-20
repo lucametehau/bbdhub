@@ -1,5 +1,6 @@
 src/main
 src/.vscode
+.vscode
 *.csv
 *.txt
 *.o
