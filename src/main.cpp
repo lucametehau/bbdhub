@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
         if (!strcmp(argv[1], "bench"))
         {
             SearchLimiter limiter;
-            limiter.set_depth(3);
+            limiter.set_depth(4);
             SearchThread thread;
 
             const static std::string bench_fens[] = {
