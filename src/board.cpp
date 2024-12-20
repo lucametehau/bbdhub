@@ -37,7 +37,7 @@ const Bitboard Board::get_checkers() const
            (orthogonal_sliders(enemy) & attacks::generate_attacks_rook(king_square, occ));
 }
 
-int Board::gen_legal_moves(MoveList &moves)
+template <int moves_type> int Board::gen_legal_moves(MoveList &moves)
 {
     const Color color = player_color(), enemy = color.flip();
     const Square king_square = pieces[color][PieceTypes::KING].lsb_index();
@@ -71,8 +71,12 @@ int Board::gen_legal_moves(MoveList &moves)
             }
         }
 
-        nr_moves = add_moves(moves, king_square,
-                             attacks::generate_attacks(PieceTypes::KING, king_square, occ) & ~(us | attacked));
+        Bitboard move_mask = attacks::generate_attacks(PieceTypes::KING, king_square, occ) & ~(us | attacked);
+        if (moves_type & QUIET_MOVES)
+            nr_moves = add_moves(moves, king_square, move_mask & empty);
+
+        if (moves_type & CAPTURE_MOVES)
+            nr_moves = add_moves(moves, king_square, move_mask & them);
     }
 
     Bitboard noisy_mask, quiet_mask;
@@ -106,6 +110,7 @@ int Board::gen_legal_moves(MoveList &moves)
                    promo_pawns = pawns & attacks::rank_mask[rank7];
 
     // pawn pushes
+    if (moves_type & QUIET_MOVES)
     {
         Bitboard single_push = non_promo_pawns.shift<NORTH>(color) & empty;
         Bitboard double_push = (single_push & attacks::rank_mask[rank3]).shift<NORTH>(color) & empty & quiet_mask;
@@ -127,6 +132,7 @@ int Board::gen_legal_moves(MoveList &moves)
     }
 
     // pawn captures
+    if (moves_type & CAPTURE_MOVES)
     {
         Bitboard west_captured = (non_promo_pawns & ~attacks::file_mask[file_a]).shift<NORTHWEST>(color) & noisy_mask;
         Bitboard east_captured = (non_promo_pawns & ~attacks::file_mask[file_h]).shift<NORTHEAST>(color) & noisy_mask;
@@ -147,6 +153,7 @@ int Board::gen_legal_moves(MoveList &moves)
     }
 
     // en passant
+    if (moves_type & CAPTURE_MOVES)
     {
         Square ep = get_en_passant_square();
         if (ep != Squares::NO_SQUARE)
@@ -163,6 +170,7 @@ int Board::gen_legal_moves(MoveList &moves)
     }
 
     // promotions
+    if (moves_type & CAPTURE_MOVES)
     {
         Bitboard west_promo = (promo_pawns & ~attacks::file_mask[file_a]).shift<NORTHWEST>(color) & noisy_mask;
         Bitboard east_promo = (promo_pawns & ~attacks::file_mask[file_h]).shift<NORTHEAST>(color) & noisy_mask;
@@ -200,13 +208,17 @@ int Board::gen_legal_moves(MoveList &moves)
 
     // normal pieces
     {
+        Bitboard move_mask(0ull);
+        if (moves_type & QUIET_MOVES)
+            move_mask |= quiet_mask;
+        if (moves_type & CAPTURE_MOVES)
+            move_mask |= noisy_mask;
         // knights, only unpinned
         Bitboard mask = pieces[color][PieceTypes::KNIGHT] & ~pinned;
         while (mask)
         {
             Square sq = mask.lsb_index();
-            nr_moves = add_moves(moves, sq,
-                                 attacks::generate_attacks(PieceTypes::KNIGHT, sq, occ) & (quiet_mask | noisy_mask));
+            nr_moves = add_moves(moves, sq, attacks::generate_attacks(PieceTypes::KNIGHT, sq, occ) & move_mask);
             mask ^= Bitboard(sq);
         }
 
@@ -215,7 +227,7 @@ int Board::gen_legal_moves(MoveList &moves)
         while (mask)
         {
             Square sq = mask.lsb_index();
-            Bitboard attacks = attacks::generate_attacks_bishop(sq, occ) & (quiet_mask | noisy_mask);
+            Bitboard attacks = attacks::generate_attacks_bishop(sq, occ) & move_mask;
             // a slider can only move on the squares on the pin
             if (pinned.has_square(sq))
                 attacks &= attacks::line_mask[king_square][sq];
@@ -228,7 +240,7 @@ int Board::gen_legal_moves(MoveList &moves)
         while (mask)
         {
             Square sq = mask.lsb_index();
-            Bitboard attacks = attacks::generate_attacks_rook(sq, occ) & (quiet_mask | noisy_mask);
+            Bitboard attacks = attacks::generate_attacks_rook(sq, occ) & move_mask;
             // a slider can only move on the squares on the pin
             if (pinned.has_square(sq))
                 attacks &= attacks::line_mask[king_square][sq];
@@ -238,6 +250,7 @@ int Board::gen_legal_moves(MoveList &moves)
     }
 
     // castling
+    if (moves_type & QUIET_MOVES)
     {
         auto has_castling_right = [&](const int castle_rights, const Color color, const int side) {
             return color == Colors::WHITE ? (castle_rights >> side) & 1 : (castle_rights >> (2 + side)) & 1;
@@ -258,6 +271,10 @@ int Board::gen_legal_moves(MoveList &moves)
     }
     return nr_moves;
 }
+
+template int Board::gen_legal_moves<CAPTURE_MOVES>(MoveList &moves);
+template int Board::gen_legal_moves<QUIET_MOVES>(MoveList &moves);
+template int Board::gen_legal_moves<ALL_MOVES>(MoveList &moves);
 
 // only needed for pawn moves really
 bool Board::is_legal(const Move &move) const

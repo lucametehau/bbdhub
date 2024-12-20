@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
         if (!strcmp(argv[1], "bench"))
         {
             SearchLimiter limiter;
-            limiter.set_depth(4);
+            limiter.set_depth(3);
             SearchThread thread;
 
             const static std::string bench_fens[] = {
@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
             for (auto &fen : bench_fens)
             {
                 Board board(fen);
+                std::cout << fen << "\n";
                 thread.search(board, limiter);
 
                 total_nodes += thread.get_nodes();
