@@ -530,7 +530,7 @@ class Board
                (pawns & ~attacks::file_mask[file_h]).shift<NORTHEAST>(color);
     }
 
-    int gen_legal_moves(MoveList &moves);
+    template <int moves_type> int gen_legal_moves(MoveList &moves);
 
     /// Checks if the move is legal
     /// \param move
@@ -574,6 +574,10 @@ class Board
     uint8_t fullmoves_counter() const
     {
         return full_moves;
+    }
+    bool is_capture(const Move move) const
+    {
+        return move.type() == MoveTypes::ENPASSANT || move.is_promo() || at(move.to()) != Pieces::NO_PIECE;
     }
 
   private:

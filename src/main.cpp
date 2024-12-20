@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
             for (auto &fen : bench_fens)
             {
                 Board board(fen);
+                std::cout << fen << "\n";
                 thread.search(board, limiter);
 
                 total_nodes += thread.get_nodes();

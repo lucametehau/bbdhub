@@ -50,8 +50,6 @@ class SearchLimiter
     }
 };
 
-typedef int16_t Score;
-
 class SearchThread
 {
   private:
@@ -65,7 +63,11 @@ class SearchThread
     uint64_t nodes;
 
   public:
-    template <bool root_node> int negamax(int alpha, int beta, int depth, int ply);
+    void order_moves(MoveList &moves, int nr_moves);
+
+    Score quiescence(Score alpha, Score beta);
+
+    template <bool root_node> Score negamax(Score alpha, Score beta, int depth, int ply);
 
     Move search(Board &board, SearchLimiter &limiter);
 
