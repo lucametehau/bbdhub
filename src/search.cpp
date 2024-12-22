@@ -20,6 +20,20 @@ template <bool root_node> int SearchThread::negamax(int alpha, int beta, int dep
         }
     }
 
+    // check for null-move
+    auto major_pieces = board.get_piece_bitboard(board.player_color(), PieceTypes::QUEEN) |
+                        board.get_piece_bitboard(board.player_color(), PieceTypes::ROOK);
+    const short R = 3;
+    if (depth > R && !board.get_checkers() && major_pieces)
+    {
+        board.make_move(NULL_MOVE);
+        int score = -negamax<false>(-beta, 1 - beta, depth - 1 - R, ply + 1);
+        board.undo_move(NULL_MOVE);
+
+        if (score >= beta)
+            return beta;
+    }
+
     MoveList moves;
     int nr_moves = board.gen_legal_moves(moves);
 
@@ -82,7 +96,8 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
             try
             {
                 score = negamax<true>(-INF, INF, depth, 0);
-                std::cout << "info score " << score << " depth " << depth << " nodes " << nodes << " time " << get_time_since_start() - search_start_time << std::endl;
+                std::cout << "info score " << score << " depth " << depth << " nodes " << nodes << " time "
+                          << get_time_since_start() - search_start_time << std::endl;
                 depth++;
             }
             catch (...)

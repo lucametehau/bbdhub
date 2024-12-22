@@ -275,6 +275,17 @@ class Board
         Square from = move.from();
         Square to = move.to();
 
+        if (move == NULL_MOVE)
+        {
+            half_moves.back()++;
+
+            if (current_color == Colors::BLACK)
+                full_moves++;
+
+            current_color = current_color.flip();
+            return;
+        }
+
         // castling 0x1111 - bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
         // update castling when King moves
         if (squares[from].type() == PieceTypes::KING)
@@ -440,6 +451,13 @@ class Board
         en_passant_square = prev_state.en_passant;
         Piece prev_captured = prev_state.captured;
 
+        if (move == NULL_MOVE)
+        {
+            std::cout << "cancel move\n";
+            board_state_array.pop_back();
+            return;
+        }
+
         switch (move.type())
         {
         case CASTLE:
@@ -547,11 +565,13 @@ class Board
 
     const Bitboard orthogonal_sliders(const Color &color) const
     {
+        //        std::cout << "generate_attacks_pawn: " << color << '\n';
         return pieces[color][PieceTypes::ROOK] | pieces[color][PieceTypes::QUEEN];
     }
 
     const Bitboard diagonal_sliders(const Color &color) const
     {
+        //        std::cout << "diagonal_sliders: " << color << '\n';
         return pieces[color][PieceTypes::BISHOP] | pieces[color][PieceTypes::QUEEN];
     }
 
