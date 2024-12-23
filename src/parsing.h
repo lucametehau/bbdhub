@@ -30,7 +30,7 @@ Board read_move_history(const std::string &filename)
         if (!move_str.empty())
         {
             BBD::MoveList legal_moves;
-            int legal_count = board.gen_legal_moves(legal_moves);
+            int legal_count = board.gen_legal_moves<ALL_MOVES>(legal_moves);
 
             for (int i = 0; i < legal_count; ++i)
             {

@@ -92,7 +92,7 @@ void uci_loop()
                     while (iss >> move_str)
                     {
                         MoveList moves;
-                        int nr_moves = board.gen_legal_moves(moves);
+                        int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
                         bool legal_move = false;
 
                         for (int i = 0; i < nr_moves; i++)
