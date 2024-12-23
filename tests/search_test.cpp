@@ -31,7 +31,6 @@ TEST_F(SearchTest, TimeSearch1sec)
 
     thread.search(board, limiter);
     auto t = (get_time_since_start() - time_before) / 1000.0; // in seconds
-    std::cerr << t;
     EXPECT_LE(t, 1);
 }
 TEST_F(SearchTest, TimeSearch5sec)

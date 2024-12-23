@@ -26,9 +26,9 @@ template <bool root_node> int SearchThread::negamax(int alpha, int beta, int dep
     const short R = 3;
     if (depth > R && !board.get_checkers() && major_pieces)
     {
-        board.make_move(NULL_MOVE);
+        board.make_null_move();
         int score = -negamax<false>(-beta, 1 - beta, depth - 1 - R, ply + 1);
-        board.undo_move(NULL_MOVE);
+        board.undo_null_move();
 
         if (score >= beta)
             return beta;

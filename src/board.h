@@ -260,11 +260,35 @@ class Board
         pinned_pieces() = get_pinned_pieces();
     };
 
+    void make_null_move()
+    {
+        // record the board state before the move is made
+        BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square};
+        // record the current state
+        board_state_array.push_back(current_state);
+        // clear previous target en_passant
+        en_passant_square = Squares::NO_SQUARE;
+
+        half_moves.back()++;
+
+        if (current_color == Colors::BLACK)
+            full_moves++;
+
+        current_color = current_color.flip();
+        pinned_pieces() = get_pinned_pieces();
+        checkers() = get_checkers();
+    }
+
     /// Updates the Board, assuming the move is legal
     /// \param move
     /// \return
     void make_move(const Move &move)
     {
+        if (move == NULL_MOVE)
+        {
+            return make_null_move();
+        }
+
         // record the board state before the move is made
         BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square};
         // record the current state
@@ -274,17 +298,6 @@ class Board
 
         Square from = move.from();
         Square to = move.to();
-
-        if (move == NULL_MOVE)
-        {
-            half_moves.back()++;
-
-            if (current_color == Colors::BLACK)
-                full_moves++;
-
-            current_color = current_color.flip();
-            return;
-        }
 
         // castling 0x1111 - bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
         // update castling when King moves
@@ -453,9 +466,7 @@ class Board
 
         if (move == NULL_MOVE)
         {
-            std::cout << "cancel move\n";
-            board_state_array.pop_back();
-            return;
+            return board_state_array.pop_back();
         }
 
         switch (move.type())
@@ -535,6 +546,13 @@ class Board
             }
         }
     };
+
+    /// Updates the Board for null move
+    /// \return
+    void undo_null_move()
+    {
+        return undo_move(NULL_MOVE);
+    }
 
     const Bitboard get_pinned_pieces() const;
 
