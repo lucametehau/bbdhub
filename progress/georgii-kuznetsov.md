@@ -4,10 +4,10 @@
 ```cpp
 // board.h 
 class Board {
-    // Core functionality implemented
-    // make move method
-    // undo move method
-    // sotring board via bitboard classes and array of pieces
+// Core functionality implemented
+// make move method
+// undo move method
+// sotring board via bitboard classes and array of pieces
 };
 ```
 
@@ -53,6 +53,12 @@ to add your files to testing system, add the following lines:
 just add your file to:
 add_executables(tests ... yout_file_name.cpp)
 
+```
+
+#### Board Class Basics
+``` cpp
+    null move pruning
+    time search
 ```
 
 ### 🔄 in Progress
