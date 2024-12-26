@@ -1,8 +1,10 @@
 #pragma once
 
+#include "accumulator.h"
 #include "attacks.h"
 #include "bitboard.h"
 #include "color.h"
+#include "evaluator.h"
 #include "move.h"
 #include "piece.h"
 #include "square.h"
@@ -578,6 +580,21 @@ class Board
     bool is_capture(const Move move) const
     {
         return move.type() == MoveTypes::ENPASSANT || move.is_promo() || at(move.to()) != Pieces::NO_PIECE;
+    }
+
+    // TODO: rewrite to store as a state
+    // TODO: incrementally update
+    template <typename T = float> const NNUE::NnueAccumulator<T, NNUE::INPUT_SIZE> &get_accumulator()
+    {
+        auto *accum = new NNUE::NnueAccumulator<T, NNUE::INPUT_SIZE>();
+        accum->fill((T)0);
+        for (int i = 0; i < 64; ++i)
+        {
+            *accum[player_color()][64 * (uint8_t)squares[i] + i] = (T)0;
+            if (squares[i])
+                *accum[player_color()][64 * (uint8_t)squares[i] + i] = (T)1;
+        }
+        return *accum;
     }
 
   private:

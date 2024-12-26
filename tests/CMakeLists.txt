@@ -20,6 +20,7 @@ add_executable(tests
         perft_test.cpp
         fen_test.cpp
         search_test.cpp
+        nnue_test.cpp
         ../src/board.cpp
         ../src/search.cpp
 )
