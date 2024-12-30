@@ -113,4 +113,43 @@ inline uint64_t perft(Board &board, int depth, bool print)
 
     return nodes;
 }
+template <typename Layer> inline bool is_equal_layers(const Layer &a, const Layer &b)
+{
+    try
+    {
+        assert(a.num_inputs == b.num_inputs);
+        assert(a.num_outputs == b.num_outputs);
+
+        for (int i = 0; i < a.num_inputs; ++i)
+            for (int j = 0; j < a.num_outputs; ++j)
+                assert(a.weights[i][j] == b.weights[i][j]);
+
+        for (int i = 0; i < a.num_inputs; ++i)
+            assert(a.bias[i] == b.bias[i]);
+    }
+    catch (...)
+    {
+        return false;
+    }
+    return true;
+}
+template <typename T> inline bool is_equal_networks(const NNUE::NNUENetwork<T> &a, const NNUE::NNUENetwork<T> &b)
+{
+    try
+    {
+        auto a_layers = a.get_layers();
+        auto b_layers = b.get_layers();
+
+        assert(a_layers.size() == b_layers.size());
+        for (int i = 0; i < a_layers.size(); ++i)
+        {
+            assert(is_equal_layers(a_layers[i], b_layers[i]));
+        }
+    }
+    catch (...)
+    {
+        return false;
+    }
+    return true;
+}
 } // namespace BBD::Tests

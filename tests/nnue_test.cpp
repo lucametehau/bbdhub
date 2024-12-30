@@ -25,3 +25,13 @@ TEST_F(NNUETest, InitialPos)
 {
     std::cout << network.evaluate(board.get_accumulator(), Colors::WHITE);
 }
+TEST_F(NNUETest, IO_Test)
+{
+    // random weights now
+    network.write_to_file("test.bin");
+
+    NNUENetwork<float> new_network;
+    new_network.load_from_file("test.bin");
+
+    EXPECT_TRUE(is_equal_networks(network, new_network));
+}
