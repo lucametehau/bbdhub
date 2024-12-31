@@ -83,12 +83,10 @@ template <typename T = float> struct LinearLayer
         {
             file.write(reinterpret_cast<const char *>(&num_inputs), sizeof(num_inputs));
             file.write(reinterpret_cast<const char *>(&num_outputs), sizeof(num_outputs));
-
             for (int i = 0; i < num_inputs; ++i)
             {
                 file.write(reinterpret_cast<const char *>(weights[i]), num_outputs * sizeof(T));
             }
-
             file.write(reinterpret_cast<const char *>(bias), num_outputs * sizeof(T));
         }
         catch (...)
@@ -137,6 +135,23 @@ template <typename T = float> struct LinearLayer
         delete[] bias;
         weights = nullptr;
         bias = nullptr;
+    }
+    void cerr_print(std::ofstream &s) const
+    {
+        s << "LAYER: " << num_inputs << ", " << num_outputs << '\n';
+        s << "weights:\n";
+        for (int i = 0; i < num_inputs; ++i)
+        {
+            s << i << ":";
+            for (int j = 0; j < num_outputs; ++j)
+                s << ' ' << weights[i][j];
+            s << '\n';
+        }
+        s << "bias:";
+        for (int j = 0; j < num_outputs; ++j)
+            s << ' ' << bias[j];
+        s << '\n';
+        s << "--------------------------\n\n";
     }
 };
 

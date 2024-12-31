@@ -124,7 +124,7 @@ template <typename Layer> inline bool is_equal_layers(const Layer &a, const Laye
             for (int j = 0; j < a.num_outputs; ++j)
                 assert(a.weights[i][j] == b.weights[i][j]);
 
-        for (int i = 0; i < a.num_inputs; ++i)
+        for (int i = 0; i < a.num_outputs; ++i)
             assert(a.bias[i] == b.bias[i]);
     }
     catch (...)
@@ -151,5 +151,9 @@ template <typename T> inline bool is_equal_networks(const NNUE::NNUENetwork<T> &
         return false;
     }
     return true;
+}
+template <typename T> inline T fast_sigmoid(const T &x)
+{
+    return x / (1 + std::abs(x));
 }
 } // namespace BBD::Tests

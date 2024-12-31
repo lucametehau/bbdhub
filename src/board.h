@@ -133,7 +133,7 @@ class Board
         pieces[Colors::WHITE].fill(Bitboard(0ull));
         pieces[Colors::BLACK].fill(Bitboard(0ull));
 
-        std::string parsing_fen = std::string(fen);
+        std::string parsing_fen = std::string(fen + "      ");
         std::string positions = parsing_fen.substr(0, fen.find(' '));
         parsing_fen = parsing_fen.substr(parsing_fen.find(' ') + 1);
         std::string color = parsing_fen.substr(0, parsing_fen.find(' '));
@@ -243,10 +243,12 @@ class Board
             en_passant_square = Square(enpassant[1] - '1', enpassant[0] - 'a');
 
         // half move clock
-        half_moves.push_back(std::stoi(halfmove_clock));
+        if (!halfmove_clock.empty())
+            half_moves.push_back(std::stoi(halfmove_clock));
 
         // full move counter
-        full_moves = std::stoi(fullmove_counter);
+        if (!fullmove_counter.empty())
+            full_moves = std::stoi(fullmove_counter);
 
         // update land
         land = std::array<Bitboard, 2>{0ull, 0ull};
@@ -589,11 +591,8 @@ class Board
         auto *accum = new NNUE::NnueAccumulator<T, NNUE::INPUT_SIZE>();
         accum->fill((T)0);
         for (int i = 0; i < 64; ++i)
-        {
-            *accum[player_color()][64 * (uint8_t)squares[i] + i] = (T)0;
             if (squares[i])
-                *accum[player_color()][64 * (uint8_t)squares[i] + i] = (T)1;
-        }
+                (*accum)[player_color()][64 * (uint8_t)squares[i] + i] = (T)1;
         return *accum;
     }
 

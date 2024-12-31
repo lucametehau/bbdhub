@@ -9,7 +9,7 @@ using namespace BBD;
 namespace BBD::NNUE
 {
 constexpr int LAYERS_AMOUNT = 2;
-constexpr int INPUT_SIZE = 8;
+constexpr int INPUT_SIZE = 768;
 constexpr std::array<std::pair<int, int>, LAYERS_AMOUNT> LAYERS_SIZES{
     std::pair<int, int>{INPUT_SIZE, 8},
     std::pair<int, int>{8, 1},
@@ -97,33 +97,32 @@ template <typename T = float> class NNUENetwork
     }
     void backward_propagate(T expected, T *input)
     {
-        T delta = *(hidden_weights.back().activated) - expected;
-        T error = delta; // squared?
+        T delta = hidden_weights.back().raw[0] - expected;
 
         // compute gradients
-        std::vector<T> gradients(LAYERS_SIZES.back().first);
+        std::vector<T> gradients(hidden_weights.back().num_inputs);
+
         for (int i = 0; i < hidden_weights.back().num_inputs; ++i)
         {
-            T gradient_weight = error * hidden_weights[LAYERS_AMOUNT - 2].activated[i];
+            T gradient_weight = delta * hidden_weights[LAYERS_AMOUNT - 2].activated[i];
             hidden_weights.back().weights[i][0] -= learning_rate * gradient_weight;
 
-            gradients[i] = error * hidden_weights.back().weights[i][0];
+            gradients[i] = delta * hidden_weights.back().weights[i][0];
         }
 
         // tweak
-        hidden_weights.back().bias[0] -= error * learning_rate;
+        hidden_weights.back().bias[0] -= delta * learning_rate;
 
         for (int layer_ind = LAYERS_AMOUNT - 2; layer_ind >= 0; --layer_ind)
         {
             auto &layer = hidden_weights[layer_ind];
-            std::vector<T> next_gradients(layer.num_inputs);
-            for (int i = 0; i < layer.num_inputs; ++i)
-            {
-                next_gradients[i] = 0;
-                for (int j = 0; j < layer.num_outputs; ++j)
-                {
-                    T gradient = gradients[j] * clipped_relu_der(layer.raw[j]);
+            std::vector<T> next_gradients(layer.num_inputs, 0);
 
+            for (int j = 0; j < layer.num_outputs; ++j)
+            {
+                T gradient = gradients[j] * clipped_relu_der(layer.raw[j]);
+                for (int i = 0; i < layer.num_inputs; ++i)
+                {
                     T gradient_weight = gradient * input[i];
                     if (layer_ind != 0)
                         gradient_weight = gradient * hidden_weights[layer_ind - 1].activated[i];
@@ -131,13 +130,9 @@ template <typename T = float> class NNUENetwork
                     layer.weights[i][j] -= learning_rate * gradient_weight;
                     next_gradients[i] += gradient * layer.weights[i][j];
                 }
-            }
-
-            for (int j = 0; j < layer.num_inputs; ++j)
-            {
-                T gradient = gradients[j] * clipped_relu_der(layer.raw[j]);
                 layer.bias[j] -= learning_rate * gradient;
             }
+
             // recalc gradients
             gradients = std::move(next_gradients);
         }
