@@ -30,6 +30,19 @@ TEST_F(ZobristTest, BasicMoves)
 
 }
 
+TEST_F(ZobristTest, BasicMoves2)
+{
+    Move pawn_move(Squares::F2, Squares::F4, NO_TYPE);
+    board.make_move(pawn_move);
+
+    EXPECT_EQ(BBD::Zobrist::hash_calc(board), board.get_current_zobrist_hash());
+
+    board.undo_move(pawn_move);
+
+    EXPECT_EQ(BBD::Zobrist::hash_calc(board), board.get_current_zobrist_hash());
+
+}
+
 TEST_F(ZobristTest, Captures)
 {
     Move setup1(Squares::E2, Squares::E4, NO_TYPE);
