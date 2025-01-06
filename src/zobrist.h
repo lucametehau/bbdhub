@@ -1,6 +1,7 @@
 #pragma once
 #include "piece.h"
 #include "square.h"
+#include <cctype>
 #include <array>
 #include <random>
 

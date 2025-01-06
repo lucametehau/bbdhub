@@ -90,6 +90,10 @@ Score SearchThread::quiescence(Score alpha, Score beta)
 
 template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, int depth, int ply)
 {
+    if (!root_node && board.three_fold_repetition_check()) {
+        return 0; // draw
+    }
+
     if (depth == 0)
         return quiescence(alpha, beta);
     nodes++;
@@ -117,12 +121,6 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
             continue;
 
         board.make_move(move);
-
-        if (board.three_fold_repetition_check()) {
-            board.undo_move(move);
-            return 0; 
-        }
-
         played++;
         int score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
         board.undo_move(move);
