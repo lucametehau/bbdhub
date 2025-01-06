@@ -35,6 +35,10 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
 
 Score SearchThread::quiescence(Score alpha, Score beta)
 {
+    if (board.three_fold_repetition_check()) {
+        return 0; // draw
+    }
+    
     nodes++;
     if (limiter.get_mode() == SearchLimiter::SearchMode::TIME_SEARCH)
     {
@@ -113,6 +117,12 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
             continue;
 
         board.make_move(move);
+
+        if (board.three_fold_repetition_check()) {
+            board.undo_move(move);
+            return 0; 
+        }
+
         played++;
         int score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
         board.undo_move(move);
@@ -120,6 +130,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         if (score > best)
         {
             best = score;
+
 
             if (score > alpha)
             {
