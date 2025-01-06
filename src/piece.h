@@ -2,6 +2,7 @@
 #include "color.h"
 #include <array>
 #include <cstdint>
+#include <cctype>
 
 namespace BBD
 {
