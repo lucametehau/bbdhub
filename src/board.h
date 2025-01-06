@@ -62,6 +62,7 @@ class Board
         castling_rights = 0b1111;               // bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
         en_passant_square = Squares::NO_SQUARE; // no square is available initially
         current_zobrist_hash = BBD::Zobrist::hash_calc(*this); // current zobrist hash of the board 
+        hash_count[current_zobrist_hash]++;
         pieces[Colors::BLACK].fill(Bitboard(0ull));
         pieces[Colors::WHITE].fill(Bitboard(0ull));
 
@@ -466,6 +467,7 @@ class Board
         }
 
         current_zobrist_hash = new_zobrsist_hash;
+        hash_count[current_zobrist_hash]++;
 
         half_moves.back()++;
         if (current_color == Colors::BLACK)
@@ -492,6 +494,7 @@ class Board
 
         current_color = current_color.flip();
 
+        hash_count[current_zobrist_hash]--;
         // previous state
         BoardState prev_state = board_state_array.back();
         castling_rights = prev_state.castling;
@@ -579,16 +582,7 @@ class Board
 
     bool three_fold_repetition_check() 
     {
-        std::unordered_map<uint64_t, int> cnt; 
-
-        for (auto &it : board_state_array) {
-            cnt[it.zobrist_hash]++; 
-            if (cnt[it.zobrist_hash] == 3) {
-                return true;
-            }
-        }
-
-        return false;
+        return hash_count[current_zobrist_hash] == 3;
     };
 
     const Bitboard get_pinned_pieces() const;
@@ -661,6 +655,7 @@ class Board
     uint8_t castling_rights;
     Square en_passant_square;
     uint64_t current_zobrist_hash; 
+    std::unordered_map<uint64_t, int> hash_count;
 
     struct BoardState
     {
