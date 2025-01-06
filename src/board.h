@@ -9,6 +9,7 @@
 #include "zobrist.h"
 #include <array>
 #include <vector>
+#include <unordered_map>
 
 namespace BBD
 {
@@ -574,6 +575,20 @@ class Board
                 land[current_color.flip()].set_bit(to, true);
             }
         }
+    };
+
+    bool three_fold_repetition_check() 
+    {
+        std::unordered_map<uint64_t, int> cnt; 
+
+        for (auto &it : board_state_array) {
+            cnt[it.zobrist_hash]++; 
+            if (cnt[it.zobrist_hash] == 3) {
+                return true;
+            }
+        }
+
+        return false;
     };
 
     const Bitboard get_pinned_pieces() const;
