@@ -20,10 +20,8 @@ add_executable(tests
         perft_test.cpp
         fen_test.cpp
         search_test.cpp
-        zobrist_test.cpp
         ../src/board.cpp
         ../src/search.cpp
-        ../src/zobrist.cpp
 )
 
 target_compile_options(tests PRIVATE

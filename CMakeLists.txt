@@ -29,7 +29,6 @@ add_custom_target(format-apply
 ############################################################################
 
 set(SOURCES
-        src/zobrist.cpp
         src/main.cpp
         src/board.cpp
         src/search.cpp
