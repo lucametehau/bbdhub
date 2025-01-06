@@ -106,7 +106,6 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
     order_moves(moves, nr_moves);
 
-    bool found_principal_variation = false;
     Score best = -INF;
     int played = 0;
 
@@ -121,7 +120,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
         Score score;
 
-        if (found_principal_variation)
+        if (played > 1)
         {
             score = -negamax<false>(-alpha - 1, -alpha, depth - 1, ply + 1);
 
@@ -147,7 +146,6 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
                     thread_best_score = score;
                 }
                 alpha = score;
-                found_principal_variation = true;
 
                 if (alpha >= beta)
                     break;
