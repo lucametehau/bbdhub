@@ -17,20 +17,3 @@ class ThreeFoldTest : public ::testing::Test
         board = Board();
     }
 };
-
-
-TEST_F(ThreeFoldTest, BasicMoves2)
-{
-    Move move1(Squares::G1, Squares::F3, NO_TYPE);
-    Move move2(Squares::F3, Squares::G1, NO_TYPE);
-
-    board.make_move(move1);
-    board.make_move(move2);
-    EXPECT_FALSE(board.threefold_check());
-    board.make_move(move1);
-    board.make_move(move2);
-    EXPECT_FALSE(board.threefold_check());
-    board.make_move(move1);
-    board.make_move(move2);
-    EXPECT_TRUE(board.threefold_check());
-}

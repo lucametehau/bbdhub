@@ -51,6 +51,10 @@ class Board
     {
         return cur_zobrist_hash;
     }
+    int get_hash_cnt(uint64_t h)
+    {
+        return hash_cnt[h];
+    }
 
     Board()
     {
@@ -463,11 +467,12 @@ class Board
         if (current_color == Colors::BLACK)
             full_moves++;
 
-        cur_zobrist_hash = hash_calc();
-        hash_cnt[cur_zobrist_hash]++;
         current_color = current_color.flip();
         pinned_pieces() = get_pinned_pieces();
         checkers() = get_checkers();
+        
+        cur_zobrist_hash = hash_calc();
+        hash_cnt[cur_zobrist_hash]++;
     };
 
     /// Updates the Board, assuming the move is legal

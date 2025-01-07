@@ -85,6 +85,35 @@ TEST_F(HashCalcTest, Captures)
     EXPECT_EQ(hash1, hash3);
 }
 
+
+TEST_F(HashCalcTest, Captures2)
+{
+    Move setup1(Squares::B8, Squares::C3, NO_TYPE);
+    Move setup2(Squares::G1, Squares::E4, NO_TYPE);
+    board.make_move(setup1);
+    board.make_move(setup2);
+
+    
+
+    Move capture1(Squares::B1, Squares::C3, NO_TYPE);
+    Move capture2(Squares::E4, Squares::C3, NO_TYPE);
+
+    board.make_move(capture1);
+    Move setup3(Squares::C3, Squares::B1, NO_TYPE);
+    board.make_move(setup3);
+    uint64_t hash1 = board.hash_calc();
+
+    board.undo_move(setup3);
+    board.undo_move(capture1);
+
+    board.make_move(capture2);
+    Move setup4(Squares::C3, Squares::E4, NO_TYPE);
+    board.make_move(setup4);
+    uint64_t hash2 = board.hash_calc();
+
+    EXPECT_EQ(hash1, hash2);
+}
+
 TEST_F(HashCalcTest, Castling)
 {
     Move clear1(Squares::E2, Squares::E4, NO_TYPE);
