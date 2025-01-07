@@ -20,6 +20,8 @@ add_executable(tests
         perft_test.cpp
         fen_test.cpp
         search_test.cpp
+        hash_calc_test.cpp
+        threefold_test.cpp
         ../src/board.cpp
         ../src/search.cpp
 )
