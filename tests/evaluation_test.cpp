@@ -41,7 +41,7 @@ TEST_F(EvaluationTest, Captures)
     board.make_move(setup1);
     board.make_move(setup2);
 
-    Move capture(Squares::E4, Squares::D5, NO_TYPE);
+    Move capture(Squares::E4, Squares::D5, NO_
     board.make_move(capture);
 
     int score = BBD::Engine::board_evaluation(board);
