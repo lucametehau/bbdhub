@@ -470,7 +470,7 @@ class Board
         current_color = current_color.flip();
         pinned_pieces() = get_pinned_pieces();
         checkers() = get_checkers();
-        
+
         cur_zobrist_hash = hash_calc();
         hash_cnt[cur_zobrist_hash]++;
     };
@@ -489,9 +489,10 @@ class Board
         if (half_moves.back() == -1)
             half_moves.pop_back();
 
+        hash_cnt[cur_zobrist_hash]--;
+
         current_color = current_color.flip();
 
-        hash_cnt[cur_zobrist_hash]--;
         // previous state
         BoardState prev_state = board_state_array.back();
         castling_rights = prev_state.castling;
