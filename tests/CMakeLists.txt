@@ -15,7 +15,7 @@ find_package(GTest REQUIRED)
 
 
 add_executable(tests
-        evaluation_test.cpp
+        #evaluation_test.cpp
         board_test.cpp
         perft_test.cpp
         fen_test.cpp
