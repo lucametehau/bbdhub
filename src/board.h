@@ -55,6 +55,10 @@ class Board
     {
         return hash_cnt[h];
     }
+    int get_color() 
+    {
+        return player_color();
+    }
 
     Board()
     {
@@ -275,7 +279,7 @@ class Board
     uint64_t hash_calc()
         {
             uint64_t hash = 0;
-            Color current_color = player_color();
+            Color current_color = get_color();
 
             if (!current_color)
             { // black
@@ -287,14 +291,14 @@ class Board
             {
                 if (at(sq) != Pieces::NO_PIECE)
                 {
-                    uint8_t piece_number = (at(sq).type() * 2 + current_color);
+                    uint8_t piece_number = (at(sq).type() * 2 + current_color); // the 2nd term used to be current_color
                     hash ^= BBD::Zobrist::piece_square_keys[piece_number * 64 + sq];
                 }
             }
 
             // castling
             // bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
-            uint8_t castling_rights = get_castling_rights();
+            //uint8_t castling_rights = get_castling_rights();
             if (0b0001 & castling_rights)
                 hash ^= BBD::Zobrist::castling_keys[0];
             if ((1 << 1) & castling_rights)
@@ -305,10 +309,10 @@ class Board
                 hash ^= BBD::Zobrist::castling_keys[3];
 
             // en_passant
-            Square en_passant = get_en_passant_square();
-            if (en_passant != Squares::NO_SQUARE)
+            //Square en_passant = get_en_passant_square();
+            if (en_passant_square != Squares::NO_SQUARE)
             {
-                hash ^= BBD::Zobrist::en_passant_keys[en_passant];
+                hash ^= BBD::Zobrist::en_passant_keys[en_passant_square];
             }
 
             return hash;
@@ -579,7 +583,7 @@ class Board
     };
 
     bool threefold_check() {
-        return hash_cnt[cur_zobrist_hash] == 3;
+        return hash_cnt[hash_calc()] == 3;
     }
 
     const Bitboard get_pinned_pieces() const;

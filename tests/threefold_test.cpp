@@ -17,5 +17,3 @@ class ThreeFoldTest : public ::testing::Test
         board = Board();
     }
 };
-
-

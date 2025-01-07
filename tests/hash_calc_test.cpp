@@ -189,4 +189,3 @@ TEST_F(HashCalcTest, BlackEnPassant)
 
     EXPECT_EQ(hash1, hash3);
 }
-
