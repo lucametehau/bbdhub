@@ -3,6 +3,7 @@
 #include "parsing.h"
 #include "search.h"
 #include "uci.h"
+#include "zobrist.h"
 #include <cstring>
 #include <iostream>
 
@@ -11,6 +12,7 @@ using namespace BBD::Engine;
 
 int main(int argc, char *argv[])
 {
+    BBD::Zobrist::init();
     BBD::attacks::init();
 
     // benching for OpenBench
