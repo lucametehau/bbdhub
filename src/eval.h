@@ -10,8 +10,6 @@
 #include <vector>
 
 namespace BBD::Engine
-
-
 {
 
 /*
