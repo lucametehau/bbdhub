@@ -14,7 +14,7 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
     {
         Move move = moves[i];
         if (board.is_capture(move))
-            scores[i] = 1000 * board.at(move.to());
+            scores[i] = 100000 * board.at(move.to());
         else
             scores[i] = history[board.player_color()][move.from()][move.to()];
     }
@@ -156,51 +156,13 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
                 }
                 alpha = score;
 
-                if (alpha >= beta)
-                    break;
-            }
-        }
-    }
-
-    /*
-    // Alpha-Beta pruning logic
-
-    Score best = -INF;
-    int played = 0;
-
-    for (int i = 0; i < nr_moves; i++)
-    {
-        Move move = moves[i];
-        if (!board.is_legal(move))
-            continue;
-
-        board.make_move(move);
-        played++;
-
-        int score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
-        board.undo_move(move);
-
-        if (score > best)
-        {
-            best = score;
-
-            if (score > alpha)
-            {
-                if constexpr (root_node)
-                {
-                    thread_best_move = move;
-                    thread_best_score = score;
-                }
-                alpha = score;
-                if (alpha >= beta)
-                {
+                if (alpha >= beta) {
                     history[board.player_color()][move.from()][move.to()] += depth * depth;
                     break;
                 }
             }
         }
     }
-    */
 
     // Now checking for checkmate / stalemate
     if (played == 0)
