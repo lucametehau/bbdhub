@@ -46,18 +46,18 @@ TEST_F(HashCalcTest, BasicMoves2)
     board.make_move(pawn_move2);
 
     uint64_t hash1 = board.hash_calc();
-    
+
     board.undo_move(pawn_move2);
     board.undo_move(pawn_move1);
 
-    uint64_t hash01 =  board.hash_calc();
+    uint64_t hash01 = board.hash_calc();
 
     EXPECT_EQ(hash01, hash0);
 
     board.make_move(pawn_move2);
     board.make_move(pawn_move1);
 
-    uint64_t hash2 =  board.hash_calc();
+    uint64_t hash2 = board.hash_calc();
 
     EXPECT_EQ(hash1, hash2);
 }
@@ -85,15 +85,12 @@ TEST_F(HashCalcTest, Captures)
     EXPECT_EQ(hash1, hash3);
 }
 
-
 TEST_F(HashCalcTest, Captures2)
 {
     Move setup1(Squares::B8, Squares::C3, NO_TYPE);
     Move setup2(Squares::G1, Squares::E4, NO_TYPE);
     board.make_move(setup1);
     board.make_move(setup2);
-
-    
 
     Move capture1(Squares::B1, Squares::C3, NO_TYPE);
     Move capture2(Squares::E4, Squares::C3, NO_TYPE);
@@ -158,12 +155,11 @@ TEST_F(HashCalcTest, WhiteEnPassant)
     EXPECT_FALSE(hash1 == hash2);
 
     board.undo_move(en_passant);
-    
+
     uint64_t hash3 = board.hash_calc();
 
     EXPECT_EQ(hash1, hash3);
 }
-
 
 TEST_F(HashCalcTest, BlackEnPassant)
 {
@@ -184,7 +180,7 @@ TEST_F(HashCalcTest, BlackEnPassant)
     EXPECT_FALSE(hash1 == hash2);
 
     board.undo_move(en_passant);
-    
+
     uint64_t hash3 = board.hash_calc();
 
     EXPECT_EQ(hash1, hash3);
