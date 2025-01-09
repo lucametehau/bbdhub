@@ -8,8 +8,8 @@
 #include "square.h"
 #include "zobrist.h"
 #include <array>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace BBD
 {
@@ -276,7 +276,14 @@ class Board
     {
         uint64_t hash = 0;
         Color current_color = get_color();
+    {
+        uint64_t hash = 0;
+        Color current_color = get_color();
 
+        if (!current_color)
+        { // black
+            hash ^= BBD::Zobrist::black_to_move;
+        }
         if (!current_color)
         { // black
             hash ^= BBD::Zobrist::black_to_move;
@@ -312,6 +319,8 @@ class Board
             hash ^= BBD::Zobrist::en_passant_keys[en_passant_square];
         }
 
+        return hash;
+    }
         return hash;
     }
 
