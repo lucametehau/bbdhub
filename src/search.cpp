@@ -16,7 +16,7 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
         if (board.is_capture(move))
             scores[i] = 1000 * board.at(move.to());
         else
-            scores[i] = 0;
+            scores[i] = history[board.player_color()][move.from()][move.to()];
     }
 
     // simple sort
@@ -193,7 +193,10 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
                 }
                 alpha = score;
                 if (alpha >= beta)
+                {
+                    history[board.player_color()][move.from()][move.to()] += depth * depth;
                     break;
+                }
             }
         }
     }
@@ -211,12 +214,20 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     auto search_start_time = get_time_since_start();
     nodes = 0;
     board = _board, limiter = _limiter;
-    Score score;
 
-    start_clock();
+    // fill history with 0 at the beginning
+    for (auto &t : history)
+    {
+        for (auto &p : t)
+            p.fill(0);
+    }
+
+    Score score;
     auto depth = 1;
     auto running = true;
     int limit_depth = limiter.get_mode() == SearchLimiter::SearchMode::DEPTH_SEARCH ? limiter.get_depth() : 100;
+
+    start_clock();
     while (running && depth <= limit_depth) /// limit how much we can search
     {
         try

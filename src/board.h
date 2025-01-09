@@ -8,8 +8,8 @@
 #include "square.h"
 #include "zobrist.h"
 #include <array>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace BBD
 {
@@ -55,7 +55,7 @@ class Board
     {
         return hash_cnt[h];
     }
-    int get_color() 
+    int get_color()
     {
         return player_color();
     }
@@ -277,46 +277,46 @@ class Board
     };
 
     uint64_t hash_calc()
-        {
-            uint64_t hash = 0;
-            Color current_color = get_color();
+    {
+        uint64_t hash = 0;
+        Color current_color = get_color();
 
-            if (!current_color)
-            { // black
-                hash ^= BBD::Zobrist::black_to_move;
-            }
-
-            // piece-square
-            for (Square sq = Squares::A1; sq <= Squares::H8; sq++)
-            {
-                if (at(sq) != Pieces::NO_PIECE)
-                {
-                    uint8_t piece_number = (at(sq).type() * 2 + current_color); // the 2nd term used to be current_color
-                    hash ^= BBD::Zobrist::piece_square_keys[piece_number * 64 + sq];
-                }
-            }
-
-            // castling
-            // bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
-            //uint8_t castling_rights = get_castling_rights();
-            if (0b0001 & castling_rights)
-                hash ^= BBD::Zobrist::castling_keys[0];
-            if ((1 << 1) & castling_rights)
-                hash ^= BBD::Zobrist::castling_keys[1];
-            if ((1 << 2) & castling_rights)
-                hash ^= BBD::Zobrist::castling_keys[2];
-            if ((1 << 3) & castling_rights)
-                hash ^= BBD::Zobrist::castling_keys[3];
-
-            // en_passant
-            //Square en_passant = get_en_passant_square();
-            if (en_passant_square != Squares::NO_SQUARE)
-            {
-                hash ^= BBD::Zobrist::en_passant_keys[en_passant_square];
-            }
-
-            return hash;
+        if (!current_color)
+        { // black
+            hash ^= BBD::Zobrist::black_to_move;
         }
+
+        // piece-square
+        for (Square sq = Squares::A1; sq <= Squares::H8; sq++)
+        {
+            if (at(sq) != Pieces::NO_PIECE)
+            {
+                uint8_t piece_number = (at(sq).type() * 2 + current_color); // the 2nd term used to be current_color
+                hash ^= BBD::Zobrist::piece_square_keys[piece_number * 64 + sq];
+            }
+        }
+
+        // castling
+        // bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
+        // uint8_t castling_rights = get_castling_rights();
+        if (0b0001 & castling_rights)
+            hash ^= BBD::Zobrist::castling_keys[0];
+        if ((1 << 1) & castling_rights)
+            hash ^= BBD::Zobrist::castling_keys[1];
+        if ((1 << 2) & castling_rights)
+            hash ^= BBD::Zobrist::castling_keys[2];
+        if ((1 << 3) & castling_rights)
+            hash ^= BBD::Zobrist::castling_keys[3];
+
+        // en_passant
+        // Square en_passant = get_en_passant_square();
+        if (en_passant_square != Squares::NO_SQUARE)
+        {
+            hash ^= BBD::Zobrist::en_passant_keys[en_passant_square];
+        }
+
+        return hash;
+    }
 
     /// Updates the Board, assuming the move is legal
     /// \param move
@@ -582,7 +582,8 @@ class Board
         }
     };
 
-    bool threefold_check() {
+    bool threefold_check()
+    {
         return hash_cnt[hash_calc()] == 3;
     }
 
@@ -655,8 +656,8 @@ class Board
     Color current_color;
     uint8_t castling_rights;
     Square en_passant_square;
-    uint64_t cur_zobrist_hash; 
-    std::unordered_map<uint64_t, int> hash_cnt; 
+    uint64_t cur_zobrist_hash;
+    std::unordered_map<uint64_t, int> hash_cnt;
 
     struct BoardState
     {
