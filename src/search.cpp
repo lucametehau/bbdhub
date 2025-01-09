@@ -108,7 +108,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
     }
 
-    // Principal variation search
+    // Principal variation search logic
 
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
@@ -163,7 +163,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     /*
-    // Alpha-Beta pruning
+    // Alpha-Beta pruning logic
 
     Score best = -INF;
     int played = 0;
