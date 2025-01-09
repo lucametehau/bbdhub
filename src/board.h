@@ -15,6 +15,7 @@ namespace BBD
 {
 
 class Board
+
 {
   public:
     const uint8_t &get_castling_rights() const
