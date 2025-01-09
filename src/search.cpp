@@ -35,10 +35,11 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
 
 Score SearchThread::quiescence(Score alpha, Score beta)
 {
-    if (board.threefold_check()) {
+    if (board.threefold_check())
+    {
         return 0; // draw
     }
-    
+
     nodes++;
     if (limiter.get_mode() == SearchLimiter::SearchMode::TIME_SEARCH)
     {
@@ -90,7 +91,8 @@ Score SearchThread::quiescence(Score alpha, Score beta)
 
 template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, int depth, int ply)
 {
-    if (!root_node && board.threefold_check()) {
+    if (!root_node && board.threefold_check())
+    {
         return 0; // draw
     }
     if (depth == 0)
@@ -106,7 +108,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
     }
 
-    // Principal variation search logic
+    // Principal variation search
 
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
@@ -161,7 +163,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     /*
-    // Alpha-Beta pruning logic
+    // Alpha-Beta pruning
 
     Score best = -INF;
     int played = 0;
