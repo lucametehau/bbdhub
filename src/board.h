@@ -276,19 +276,11 @@ class Board
     {
         uint64_t hash = 0;
         Color current_color = get_color();
-    {
-        uint64_t hash = 0;
-        Color current_color = get_color();
 
         if (!current_color)
         { // black
             hash ^= BBD::Zobrist::black_to_move;
         }
-        if (!current_color)
-        { // black
-            hash ^= BBD::Zobrist::black_to_move;
-        }
-
         // piece-square
         for (Square sq = Squares::A1; sq <= Squares::H8; sq++)
         {
@@ -321,9 +313,6 @@ class Board
 
         return hash;
     }
-        return hash;
-    }
-
     /// Updates the Board, assuming the move is legal
     /// \param move
     /// \return
