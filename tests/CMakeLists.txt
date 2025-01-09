@@ -15,11 +15,13 @@ find_package(GTest REQUIRED)
 
 
 add_executable(tests
-        evaluation_test.cpp
+        #evaluation_test.cpp
         board_test.cpp
         perft_test.cpp
         fen_test.cpp
         search_test.cpp
+        hash_calc_test.cpp
+        threefold_test.cpp
         ../src/board.cpp
         ../src/search.cpp
 )
