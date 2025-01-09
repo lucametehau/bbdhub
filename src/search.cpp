@@ -108,6 +108,8 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
     }
 
+    // Principal variation search logic
+
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 
@@ -115,6 +117,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
     Score best = -INF;
     int played = 0;
+
     for (int i = 0; i < nr_moves; i++)
     {
         Move move = moves[i];
@@ -123,6 +126,57 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
         board.make_move(move);
         played++;
+
+        Score score;
+
+        if (played > 1)
+        {
+            score = -negamax<false>(-alpha - 1, -alpha, depth - 1, ply + 1);
+
+            if (score > alpha && score < beta)
+                score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
+        }
+        else
+        {
+            score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
+        }
+
+        board.undo_move(move);
+
+        if (score > best)
+        {
+            best = score;
+
+            if (score > alpha)
+            {
+                if constexpr (root_node)
+                {
+                    thread_best_move = move;
+                    thread_best_score = score;
+                }
+                alpha = score;
+
+                if (alpha >= beta)
+                    break;
+            }
+        }
+    }
+
+    /*
+    // Alpha-Beta pruning logic
+
+    Score best = -INF;
+    int played = 0;
+
+    for (int i = 0; i < nr_moves; i++)
+    {
+        Move move = moves[i];
+        if (!board.is_legal(move))
+            continue;
+
+        board.make_move(move);
+        played++;
+
         int score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
         board.undo_move(move);
 
@@ -146,8 +200,9 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
             }
         }
     }
+    */
 
-    // check for checkmate or stalemate
+    // Now checking for checkmate / stalemate
     if (played == 0)
         return board.checkers() ? -INF + ply : 0;
 
