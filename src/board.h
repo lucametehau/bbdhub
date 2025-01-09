@@ -313,6 +313,7 @@ class Board
 
         return hash;
     }
+
     /// Updates the Board, assuming the move is legal
     /// \param move
     /// \return
@@ -485,7 +486,8 @@ class Board
             pieces[current_color][move.promotion_piece()].set_bit(to, true);
 
             // zobrist update part 7 
-            //if (at(to) != Pieces::NO_PIECE) new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(to) * 64 + to];
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(to) * 64 + to];
+            // new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + to];
 
             land[current_color].set_bit(to, true);
             break;
@@ -636,7 +638,8 @@ class Board
     };
 
     bool threefold_check() {
-        uint64_t hash = board_state_array.back().zobrist_hash;
+        //uint64_t hash = board_state_array.back().zobrist_hash;
+        uint64_t hash = cur_zobrist_hash;
         int cnt = 0;
         for (auto it: board_state_array) {
             cnt += it.zobrist_hash == hash;
