@@ -155,14 +155,3 @@ TEST_F(BoardTest, Promotion)
 
     EXPECT_EQ(board.at(Squares::E7), Pieces::WHITE_PAWN);
 }
-
-TEST_F(BoardTest, AccumulatorTest)
-{
-    auto accum = board.get_accumulator();
-    // color is white
-    for (int i = 0; i < 64; ++i)
-    {
-        if (board.at(i))
-            EXPECT_EQ(accum[Colors::WHITE][64 * (uint8_t)board.at(i) + i], (uint8_t)(board.at(i) != Pieces::NO_PIECE));
-    }
-}

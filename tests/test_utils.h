@@ -133,25 +133,6 @@ template <typename Layer> inline bool is_equal_layers(const Layer &a, const Laye
     }
     return true;
 }
-template <typename T> inline bool is_equal_networks(const NNUE::NNUENetwork<T> &a, const NNUE::NNUENetwork<T> &b)
-{
-    try
-    {
-        auto a_layers = a.get_layers();
-        auto b_layers = b.get_layers();
-
-        assert(a_layers.size() == b_layers.size());
-        for (int i = 0; i < a_layers.size(); ++i)
-        {
-            assert(is_equal_layers(a_layers[i], b_layers[i]));
-        }
-    }
-    catch (...)
-    {
-        return false;
-    }
-    return true;
-}
 template <typename T> inline T fast_sigmoid(const T &x)
 {
     return x / (1 + std::abs(x));

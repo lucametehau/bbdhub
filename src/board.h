@@ -1,11 +1,10 @@
 #pragma once
 
-#include "accumulator.h"
 #include "attacks.h"
 #include "bitboard.h"
 #include "color.h"
-#include "evaluator.h"
 #include "move.h"
+#include "network.h"
 #include "piece.h"
 #include "square.h"
 #include <array>
@@ -584,16 +583,25 @@ class Board
         return move.type() == MoveTypes::ENPASSANT || move.is_promo() || at(move.to()) != Pieces::NO_PIECE;
     }
 
-    // TODO: rewrite to store as a state
     // TODO: incrementally update
-    template <typename T = float> const NNUE::NnueAccumulator<T, NNUE::INPUT_SIZE> &get_accumulator()
+    void refresh_accumulator()
     {
-        auto *accum = new NNUE::NnueAccumulator<T, NNUE::INPUT_SIZE>();
-        accum->fill((T)0);
-        for (int i = 0; i < 64; ++i)
-            if (squares[i])
-                (*accum)[player_color()][64 * (uint8_t)squares[i] + i] = (T)1;
-        return *accum;
+        accumulator = NNUE::NNUENetwork::Accumulator();
+
+        for (Square sq = 0; sq < 64; sq++)
+        {
+            Piece piece = squares[sq];
+            if (piece)
+                accumulator.add_feature(feature_index(piece, sq));
+        }
+    }
+    static int feature_index(Piece piece, Square square)
+    {
+        return (piece.color() * 6 + piece.type()) * 64 + square;
+    }
+    NNUE::NNUENetwork::Accumulator &get_accumulator()
+    {
+        return accumulator;
     }
 
   private:
@@ -603,6 +611,7 @@ class Board
     Color current_color;
     uint8_t castling_rights;
     Square en_passant_square;
+    NNUE::NNUENetwork::Accumulator accumulator;
 
     struct BoardState
     {

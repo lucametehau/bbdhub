@@ -39,7 +39,7 @@ TEST_F(SearchTest, TimeSearch5sec)
     BBD::attacks::init();
     Board board("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
     SearchLimiter limiter;
-    limiter.set_time(500);
+    limiter.set_time(5000);
     SearchThread thread;
 
     print_board(board);
