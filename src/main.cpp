@@ -12,6 +12,7 @@ using namespace BBD::Engine;
 int main(int argc, char *argv[])
 {
     BBD::attacks::init();
+    BBD::NNUE::NNUENetwork::load_from_file("../drill/nnue_v1-20/quantised.bin");
 
     // benching for OpenBench
     if (argc == 2)
