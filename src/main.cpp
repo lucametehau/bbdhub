@@ -3,6 +3,7 @@
 #include "parsing.h"
 #include "search.h"
 #include "uci.h"
+#include "zobrist.h"
 #include <cstring>
 #include <iostream>
 
@@ -11,6 +12,7 @@ using namespace BBD::Engine;
 
 int main(int argc, char *argv[])
 {
+    BBD::Zobrist::init();
     BBD::attacks::init();
     BBD::NNUE::NNUENetwork::load_from_file("../drill/nnue_v1-20/quantised.bin");
 
@@ -108,7 +110,7 @@ int main(int argc, char *argv[])
 
     using namespace BBD::Tests;
     SearchLimiter limiter;
-    limiter.set_depth(6);
+    limiter.set_time(2000);
     SearchThread thread;
 
     append_move_to_file(argv[4], thread.search(current_board, limiter).to_string());

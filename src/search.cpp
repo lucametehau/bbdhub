@@ -14,9 +14,9 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
     {
         Move move = moves[i];
         if (board.is_capture(move))
-            scores[i] = 1000 * (uint8_t)board.at(move.to());
+            scores[i] = 100000 * (uint8_t)board.at(move.to());
         else
-            scores[i] = 0;
+            scores[i] = history[board.player_color()][move.from()][move.to()];
     }
 
     // simple sort
@@ -35,6 +35,11 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
 
 Score SearchThread::quiescence(Score alpha, Score beta)
 {
+    if (board.threefold_check())
+    {
+        return 0; // draw
+    }
+
     nodes++;
     if (limiter.get_mode() == SearchLimiter::SearchMode::TIME_SEARCH)
     {
@@ -87,6 +92,10 @@ Score SearchThread::quiescence(Score alpha, Score beta)
 
 template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, int depth, int ply)
 {
+    if (!root_node && board.threefold_check())
+    {
+        return 0; // draw
+    }
     if (depth == 0)
         return quiescence(alpha, beta);
     nodes++;
@@ -100,6 +109,8 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
     }
 
+    // Principal variation search logic
+
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 
@@ -107,6 +118,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
     Score best = -INF;
     int played = 0;
+
     for (int i = 0; i < nr_moves; i++)
     {
         Move move = moves[i];
@@ -115,7 +127,21 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
         board.make_move(move);
         played++;
-        int score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
+
+        Score score;
+
+        if (played > 1)
+        {
+            score = -negamax<false>(-alpha - 1, -alpha, depth - 1, ply + 1);
+
+            if (score > alpha && score < beta)
+                score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
+        }
+        else
+        {
+            score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
+        }
+
         board.undo_move(move);
 
         if (score > best)
@@ -130,13 +156,16 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
                     thread_best_score = score;
                 }
                 alpha = score;
-                if (alpha >= beta)
+
+                if (alpha >= beta) {
+                    history[board.player_color()][move.from()][move.to()] += depth * depth;
                     break;
+                }
             }
         }
     }
 
-    // check for checkmate or stalemate
+    // Now checking for checkmate / stalemate
     if (played == 0)
         return board.checkers() ? -INF + ply : 0;
 
@@ -148,12 +177,20 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     auto search_start_time = get_time_since_start();
     nodes = 0;
     board = _board, limiter = _limiter;
-    Score score;
 
-    start_clock();
+    // fill history with 0 at the beginning
+    for (auto &t : history)
+    {
+        for (auto &p : t)
+            p.fill(0);
+    }
+
+    Score score;
     auto depth = 1;
     auto running = true;
     int limit_depth = limiter.get_mode() == SearchLimiter::SearchMode::DEPTH_SEARCH ? limiter.get_depth() : 100;
+
+    start_clock();
     while (running && depth <= limit_depth) /// limit how much we can search
     {
         try
