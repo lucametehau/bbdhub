@@ -9,7 +9,7 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
 {
     std::array<int, 256> scores;
 
-    // try to rank captures higher
+    // Try to rank captures higher
     for (int i = 0; i < nr_moves; i++)
     {
         Move move = moves[i];
@@ -19,7 +19,7 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
             scores[i] = history[board.player_color()][move.from()][move.to()];
     }
 
-    // simple sort
+    // Simple sort
     for (int i = 0; i < nr_moves; i++)
     {
         for (int j = i + 1; j < nr_moves; j++)
@@ -41,6 +41,7 @@ Score SearchThread::quiescence(Score alpha, Score beta)
     }
 
     nodes++;
+
     if (limiter.get_mode() == SearchLimiter::SearchMode::TIME_SEARCH)
     {
         if (nodes && nodes % (1 << 12))
@@ -97,6 +98,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
     if (depth == 0)
         return quiescence(alpha, beta);
+
     nodes++;
 
     if (limiter.get_mode() == SearchLimiter::SearchMode::TIME_SEARCH)
@@ -105,6 +107,18 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         {
             if (get_time_since_start() - start_time > limiter.get_move_time())
                 throw "Timeout";
+        }
+    }
+
+    // Reverse futility pruning
+    Score eval = board_evaluation(board) * (board.player_color() == Colors::WHITE ? 1 : -1);
+
+    if (!board.checkers() && depth <= 3)
+    {
+        int margin = 150 * depth; // could be smth else
+        if (eval >= beta + margin)
+        {
+            return eval;
         }
     }
 
@@ -156,7 +170,8 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
                 }
                 alpha = score;
 
-                if (alpha >= beta) {
+                if (alpha >= beta)
+                {
                     history[board.player_color()][move.from()][move.to()] += depth * depth;
                     break;
                 }
@@ -165,6 +180,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     // Now checking for checkmate / stalemate
+
     if (played == 0)
         return board.checkers() ? -INF + ply : 0;
 
@@ -177,7 +193,8 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     nodes = 0;
     board = _board, limiter = _limiter;
 
-    // fill history with 0 at the beginning
+    // Fill history with 0 at the beginning
+
     for (auto &t : history)
     {
         for (auto &p : t)
@@ -190,7 +207,7 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     int limit_depth = limiter.get_mode() == SearchLimiter::SearchMode::DEPTH_SEARCH ? limiter.get_depth() : 100;
 
     start_clock();
-    while (running && depth <= limit_depth) /// limit how much we can search
+    while (running && depth <= limit_depth) // limit how much we can search
     {
         try
         {
