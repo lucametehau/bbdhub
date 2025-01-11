@@ -12,8 +12,7 @@ using namespace BBD::Engine;
 
 int main(int argc, char *argv[])
 {
-    BBD::Zobrist::init();
-    BBD::attacks::init();
+    BBD::Engine::init();
 
     // benching for OpenBench
     if (argc == 2)
