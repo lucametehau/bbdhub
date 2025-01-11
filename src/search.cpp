@@ -111,7 +111,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
     }
 
-    // Reverse futility pruning
+    // Reverse futility pruning logic
 
     Score eval = board_evaluation(board) * (board.player_color() == Colors::WHITE ? 1 : -1);
 
