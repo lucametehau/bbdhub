@@ -36,9 +36,16 @@ Improved the *search* capability by implementing principal variation search, enh
 
 #### Week 5
 
+This week we continued to improve our engine.
+
+Further improved the *search* capability of the engine by implementing reverse futility pruning.
+
 🔄 In Progress
 
-Last update: January 6th, 2025
+#### Week 6
+
+
+Last update: January 12th, 2025
 
 
 
