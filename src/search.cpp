@@ -1,6 +1,7 @@
 #include "search.h"
 #include "eval.h"
 #include <cassert>
+#include <fstream>
 
 namespace BBD::Engine
 {
@@ -151,12 +152,12 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
             {
                 if constexpr (root_node)
                 {
-                    thread_best_move = move;
-                    thread_best_score = score;
+                    root_best_move = move;
                 }
                 alpha = score;
 
-                if (alpha >= beta) {
+                if (alpha >= beta)
+                {
                     history[board.player_color()][move.from()][move.to()] += depth * depth;
                     break;
                 }
@@ -198,6 +199,7 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
             std::cout << "info score " << score << " depth " << depth << " nodes " << nodes << " time "
                       << get_time_since_start() - search_start_time << std::endl;
             depth++;
+            thread_best_move = root_best_move; // only take into account full search results, for now
         }
         catch (...)
         {
