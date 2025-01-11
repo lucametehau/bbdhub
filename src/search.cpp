@@ -116,7 +116,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
     if (!board.checkers() && depth <= 3)
     {
-        int margin = 150 * depth; // could be smth else
+        int margin = 200 * depth; // could be smth else
         if (eval >= beta + margin)
         {
             return eval;
