@@ -111,20 +111,20 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
     }
 
-    // Reverse futility pruning logic
+    // Reverse futility pruning
 
     Score eval = board_evaluation(board) * (board.player_color() == Colors::WHITE ? 1 : -1);
 
     if (!board.checkers() && depth <= 3)
     {
-        int margin = 200 * depth; // could be smth else
+        int margin = 200 * depth; // change this value later?
         if (eval >= beta + margin)
         {
             return eval;
         }
     }
 
-    // Principal variation search logic
+    // Principal variation search
 
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
