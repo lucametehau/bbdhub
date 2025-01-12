@@ -7,6 +7,12 @@
 namespace BBD::Engine
 {
 
+inline void init()
+{
+    BBD::attacks::init();
+    BBD::Zobrist::init();
+}
+
 class SearchLimiter
 {
   public:
@@ -54,8 +60,7 @@ class SearchThread
 {
   private:
     Board board;
-    Move thread_best_move;
-    Score thread_best_score;
+    Move thread_best_move, root_best_move;
     SearchLimiter limiter;
     std::array<std::array<std::array<int, 64>, 64>, 2> history;
 

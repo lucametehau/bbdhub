@@ -35,7 +35,7 @@ inline bool verify_position(const Board &board, const std::string &fen)
     {
         for (int file = 0; file < 8; file++)
         {
-            if (idx >= fen.length())
+            if (idx >= (int)fen.length())
                 return false;
 
             Piece piece = board.at(rank * 8 + file);

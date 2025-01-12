@@ -32,6 +32,7 @@ target_compile_options(tests PRIVATE
     -Werror
     -g
     -O3
+    -std=c++20
 )
 
 

@@ -20,7 +20,7 @@ class SearchTest : public ::testing::Test
 
 TEST_F(SearchTest, TimeSearch1sec)
 {
-    BBD::attacks::init();
+    BBD::Engine::init();
     Board board("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
     SearchLimiter limiter;
     limiter.set_time(1000);
@@ -36,7 +36,7 @@ TEST_F(SearchTest, TimeSearch1sec)
 }
 TEST_F(SearchTest, TimeSearch5sec)
 {
-    BBD::attacks::init();
+    BBD::Engine::init();
     Board board("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
     SearchLimiter limiter;
     limiter.set_time(5000);
