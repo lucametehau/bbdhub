@@ -112,7 +112,6 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     // Reverse futility pruning
-
     Score eval = board_evaluation(board) * (board.player_color() == Colors::WHITE ? 1 : -1);
 
     if (!board.checkers() && depth <= 3)
@@ -129,7 +128,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     auto major_pieces = board.get_piece_bitboard(board.player_color(), PieceTypes::QUEEN) |
                         board.get_piece_bitboard(board.player_color(), PieceTypes::ROOK);
     const short R = 3;
-    if (depth > R && !board.get_checkers() && major_pieces)
+    if (depth > R && !board.checkers() && major_pieces)
     {
         board.make_null_move();
         int score = -negamax<false>(-beta, 1 - beta, depth - 1 - R, ply + 1);
