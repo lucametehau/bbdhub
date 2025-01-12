@@ -321,7 +321,7 @@ class Board
     void make_null_move()
     {
         // record the board state before the move is made
-        BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square};
+        BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square, cur_zobrist_hash};
         // record the current state
         board_state_array.push_back(current_state);
         // clear previous target en_passant
