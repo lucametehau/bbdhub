@@ -488,6 +488,7 @@ class Board
 
             // zobrist incremetal update part 7 
             new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + from];
+            // new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + to];
 
             land[current_color].set_bit(to, true);
             break;
@@ -641,7 +642,7 @@ class Board
 
     bool threefold_check()
     {
-        int cnt = 1;
+        int cnt = 0;
         for (auto it: board_state_array) {
             cnt += (it.zobrist_hash == cur_zobrist_hash);
             if (cnt == 3) {

@@ -250,7 +250,7 @@ TEST_F(IncrementalHashCalcTest, Promo1)
     uint64_t hash1_ = board.get_cur_hash();
     EXPECT_EQ(hash1, hash1_);
 
-    Move promo1(Squares::B2, Squares::B1, PROMO_BISHOP);
+    Move promo1(Squares::B2, Squares::B1, PROMO_QUEEN);
     board.make_move(promo1);
 
     uint64_t hash2 = board.hash_calc();
