@@ -6,7 +6,10 @@
 using namespace BBD;
 using namespace BBD::Tests;
 
-class IncrHashCalcTest : public ::testing::Test
+// -----------------------------------------------------------------------------
+// Test fixture for Hash Calculation
+// -----------------------------------------------------------------------------
+class IncrementalHashCalcTest : public ::testing::Test
 {
   protected:
     Board board;
@@ -18,7 +21,12 @@ class IncrHashCalcTest : public ::testing::Test
     }
 };
 
-TEST_F(IncrHashCalcTest, BasicMoves)
+// -----------------------------------------------------------------------------
+// 1) BasicMoves
+// -----------------------------------------------------------------------------
+
+
+TEST_F(IncrementalHashCalcTest, BasicMoves)
 {
     uint64_t hash1 = board.hash_calc();
     uint64_t hash1_ = board.get_cur_hash();
@@ -39,7 +47,7 @@ TEST_F(IncrHashCalcTest, BasicMoves)
     EXPECT_EQ(hash1, hash3);
 }
 
-TEST_F(IncrHashCalcTest, BasicMoves2)
+TEST_F(IncrementalHashCalcTest, BasicMoves2)
 {
     uint64_t hash0 = board.hash_calc();
     uint64_t hash0_ = board.get_cur_hash();
@@ -47,36 +55,36 @@ TEST_F(IncrHashCalcTest, BasicMoves2)
 
     // Move pawn_move1(Squares::E2, Squares::E4, NO_TYPE);
     // Move pawn_move2(Squares::B7, Squares::B5, NO_TYPE);
-    Move pawn_move1(Squares::G8, Squares::F6, NO_TYPE);
-    Move pawn_move2(Squares::B1, Squares::C3, NO_TYPE);
+    Move knight_move1(Squares::G8, Squares::F6, NO_TYPE);
+    Move knight_move2(Squares::B1, Squares::C3, NO_TYPE);
 
-    board.make_move(pawn_move1);
-    board.make_move(pawn_move2);
+    board.make_move(knight_move1);
+    board.make_move(knight_move2);
 
     uint64_t hash1 = board.hash_calc();
     uint64_t hash1_ = board.get_cur_hash();
     EXPECT_EQ(hash1, hash1_);
-    
-    board.undo_move(pawn_move2);
-    board.undo_move(pawn_move1);
 
-    uint64_t hash01 =  board.hash_calc();
+    board.undo_move(knight_move2);
+    board.undo_move(knight_move1);
+
+    uint64_t hash01 = board.hash_calc();
     uint64_t hash01_ = board.get_cur_hash();
     EXPECT_EQ(hash01, hash01_);
 
     EXPECT_EQ(hash01, hash0);
 
-    board.make_move(pawn_move2);
-    board.make_move(pawn_move1);
+    board.make_move(knight_move2);
+    board.make_move(knight_move1);
 
-    uint64_t hash2 =  board.hash_calc();
+    uint64_t hash2 = board.hash_calc();
     uint64_t hash2_ = board.get_cur_hash();
     EXPECT_EQ(hash2, hash2_);
 
     EXPECT_EQ(hash1, hash2);
 }
 
-TEST_F(IncrHashCalcTest, Captures)
+TEST_F(IncrementalHashCalcTest, Captures)
 {
     Move setup1(Squares::E2, Squares::E4, NO_TYPE);
     Move setup2(Squares::D7, Squares::D5, NO_TYPE);
@@ -105,8 +113,7 @@ TEST_F(IncrHashCalcTest, Captures)
     EXPECT_EQ(hash1, hash3);
 }
 
-
-TEST_F(IncrHashCalcTest, Captures2)
+TEST_F(IncrementalHashCalcTest, Captures2)
 {
     Move setup1(Squares::B8, Squares::C3, NO_TYPE);
     Move setup2(Squares::G1, Squares::E4, NO_TYPE);
@@ -136,7 +143,7 @@ TEST_F(IncrHashCalcTest, Captures2)
     EXPECT_EQ(hash1, hash2);
 }
 
-TEST_F(IncrHashCalcTest, Castling)
+TEST_F(IncrementalHashCalcTest, Castling)
 {
     Move clear1(Squares::E2, Squares::E4, NO_TYPE);
     Move clear2(Squares::G1, Squares::F3, NO_TYPE);
@@ -169,7 +176,7 @@ TEST_F(IncrHashCalcTest, Castling)
     EXPECT_EQ(hash1, hash3);
 }
 
-TEST_F(IncrHashCalcTest, WhiteEnPassant)
+TEST_F(IncrementalHashCalcTest, WhiteEnPassant)
 {
     Move clear1(Squares::E2, Squares::E5, NO_TYPE);
     Move clear2(Squares::F7, Squares::F5, NO_TYPE);
@@ -190,7 +197,7 @@ TEST_F(IncrHashCalcTest, WhiteEnPassant)
     EXPECT_FALSE(hash1 == hash2);
 
     board.undo_move(en_passant);
-    
+
     uint64_t hash3 = board.hash_calc();
     uint64_t hash3_ = board.get_cur_hash();
     EXPECT_EQ(hash3, hash3_);
@@ -198,8 +205,7 @@ TEST_F(IncrHashCalcTest, WhiteEnPassant)
     EXPECT_EQ(hash1, hash3);
 }
 
-
-TEST_F(IncrHashCalcTest, BlackEnPassant)
+TEST_F(IncrementalHashCalcTest, BlackEnPassant)
 {
     Move clear1(Squares::G2, Squares::G4, NO_TYPE);
     Move clear2(Squares::F7, Squares::F4, NO_TYPE);
@@ -222,10 +228,32 @@ TEST_F(IncrHashCalcTest, BlackEnPassant)
     EXPECT_FALSE(hash1 == hash2);
 
     board.undo_move(en_passant);
-    
+
     uint64_t hash3 = board.hash_calc();
     uint64_t hash3_ = board.get_cur_hash();
     EXPECT_EQ(hash3, hash3_);
 
     EXPECT_EQ(hash1, hash3);
+}
+
+
+TEST_F(IncrementalHashCalcTest, Promo1)
+{
+    Move setup1(Squares::B2, Squares::C3, NO_TYPE);
+    Move setup2(Squares::B1, Squares::A3, NO_TYPE);
+    Move setup3(Squares::B7, Squares::B2, NO_TYPE);
+    board.make_move(setup1);
+    board.make_move(setup2);
+    board.make_move(setup3);
+
+    uint64_t hash1 = board.hash_calc();
+    uint64_t hash1_ = board.get_cur_hash();
+    EXPECT_EQ(hash1, hash1_);
+
+    Move promo1(Squares::B2, Squares::B1, PROMO_BISHOP);
+    board.make_move(promo1);
+
+    uint64_t hash2 = board.hash_calc();
+    uint64_t hash2_ = board.get_cur_hash();
+    EXPECT_EQ(hash2, hash2_);
 }
