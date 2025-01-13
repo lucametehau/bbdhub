@@ -257,3 +257,27 @@ TEST_F(IncrementalHashCalcTest, Promo1)
     uint64_t hash2_ = board.get_cur_hash();
     EXPECT_EQ(hash2, hash2_);
 }
+
+TEST_F(IncrementalHashCalcTest, Promo2)
+{
+    Move setup0(Squares::A2, Squares::A3, NO_TYPE);
+    board.make_move(setup0);
+
+    Move setup1(Squares::B2, Squares::C3, NO_TYPE);
+    Move setup2(Squares::B1, Squares::A3, NO_TYPE);
+    Move setup3(Squares::B7, Squares::B2, NO_TYPE);
+    board.make_move(setup1);
+    board.make_move(setup2);
+    board.make_move(setup3);
+
+    uint64_t hash1 = board.hash_calc();
+    uint64_t hash1_ = board.get_cur_hash();
+    EXPECT_EQ(hash1, hash1_);
+
+    Move promo1(Squares::B2, Squares::B1, PROMO_QUEEN);
+    board.make_move(promo1);
+
+    uint64_t hash2 = board.hash_calc();
+    uint64_t hash2_ = board.get_cur_hash();
+    EXPECT_EQ(hash2, hash2_);
+}
