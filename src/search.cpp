@@ -2,6 +2,7 @@
 #include "eval.h"
 #include <cassert>
 #include <fstream>
+#include <iostream>
 
 namespace BBD::Engine
 {
@@ -93,6 +94,9 @@ Score SearchThread::quiescence(Score alpha, Score beta)
 
 template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, int depth, int ply)
 {
+    Score alpha_original = alpha;
+    Move best_move;
+
     if (!root_node && board.threefold_check())
     {
         return 0; // draw
@@ -111,13 +115,35 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
     }
 
+    // Transposition table probe
+
+    uint64_t posKey = board.get_cur_hash();
+    {
+        Score ttScore;
+        TTBound ttBound;
+        Move ttMove;
+
+        if (tt.probe(posKey, depth, ttScore, ttBound, ttMove))
+        {
+            if (ttBound == TTBound::EXACT)
+                return ttScore;
+            if (ttBound == TTBound::LOWER && ttScore > alpha)
+                alpha = ttScore;
+            else if (ttBound == TTBound::UPPER && ttScore < beta)
+                beta = ttScore;
+
+            if (alpha >= beta)
+                return ttScore;
+        }
+    }
+
     // Reverse futility pruning
 
     Score eval = board_evaluation(board) * (board.player_color() == Colors::WHITE ? 1 : -1);
 
     if (!board.checkers() && depth <= 3)
     {
-        int margin = 200 * depth; // change this value later?
+        int margin = 200 * depth;
         if (eval >= beta + margin)
         {
             return eval;
@@ -162,6 +188,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         if (score > best)
         {
             best = score;
+            best_move = move;
 
             if (score > alpha)
             {
@@ -180,10 +207,22 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
     }
 
-    // Now checking for checkmate / stalemate
+    // Checkmate / stalemate detection
 
     if (played == 0)
         return board.checkers() ? -INF + ply : 0;
+
+    // Store in transposition table
+
+    TTBound bound_type;
+    if (best <= alpha_original)
+        bound_type = TTBound::UPPER;
+    else if (best >= beta)
+        bound_type = TTBound::LOWER;
+    else
+        bound_type = TTBound::EXACT;
+
+    tt.store(posKey, depth, best, bound_type, best_move);
 
     return best;
 }
@@ -193,6 +232,8 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     auto search_start_time = get_time_since_start();
     nodes = 0;
     board = _board, limiter = _limiter;
+
+    tt.clear();
 
     // Fill history with 0 at the beginning
 

@@ -1,8 +1,14 @@
 #pragma once
-#include "board.h"
-#include "util.h"
 
-// setup for searching thread
+#include "board.h"
+#include "move.h"
+#include "tt.h"
+#include "util.h"
+#include <array>
+#include <cstdint>
+#include <ctime>
+
+// Setup for searching thread
 
 namespace BBD::Engine
 {
@@ -63,6 +69,8 @@ class SearchThread
     Move thread_best_move, root_best_move;
     SearchLimiter limiter;
     std::array<std::array<std::array<int, 64>, 64>, 2> history;
+
+    TranspositionTable tt;
 
     time_t start_time;
 
