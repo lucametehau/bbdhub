@@ -119,11 +119,11 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
     uint64_t posKey = board.get_cur_hash();
     {
-        Score ttScore, ttAlpha, ttBeta;
+        Score ttScore;
         TTBound ttBound;
         Move ttMove;
 
-        if (tt.probe(posKey, depth, ttScore, ttAlpha, ttBeta, ttBound, ttMove))
+        if (tt.probe(posKey, depth, ttScore, ttBound, ttMove))
         {
             if (ttBound == TTBound::EXACT)
                 return ttScore;
@@ -143,7 +143,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
     if (!board.checkers() && depth <= 3)
     {
-        int margin = 200 * depth; // change this value later?
+        int margin = 200 * depth;
         if (eval >= beta + margin)
         {
             return eval;
@@ -222,7 +222,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     else
         bound_type = TTBound::EXACT;
 
-    tt.store(posKey, depth, best, alpha_original, beta, bound_type, best_move);
+    tt.store(posKey, depth, best, bound_type, best_move);
 
     return best;
 }

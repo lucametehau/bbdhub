@@ -19,8 +19,8 @@ struct TTEntry
     uint64_t key = 0ull;
     int depth = -1;
     Score score = 0;
-    Score alpha = -30000;
-    Score beta = 30000;
+    // Score alpha = -30000;
+    // Score beta = 30000;
     TTBound bound = TTBound::EXACT;
     Move best_move;
 };
@@ -45,8 +45,7 @@ class TranspositionTable
         return static_cast<size_t>(key & (TT_SIZE - 1ULL));
     }
 
-    bool probe(uint64_t key, int depth, Score &out_score, Score &out_alpha, Score &out_beta, TTBound &out_bound,
-               Move &out_move)
+    bool probe(uint64_t key, int depth, Score &out_score, TTBound &out_bound, Move &out_move)
     {
         TTEntry &entry = table[index_of(key)];
         if (entry.key == key)
@@ -54,8 +53,6 @@ class TranspositionTable
             if (entry.depth >= depth)
             {
                 out_score = entry.score;
-                out_alpha = entry.alpha;
-                out_beta = entry.beta;
                 out_bound = entry.bound;
                 out_move = entry.best_move;
                 return true;
@@ -66,14 +63,12 @@ class TranspositionTable
 
     // Store a new entry in TT
 
-    void store(uint64_t key, int depth, Score score, Score alpha, Score beta, TTBound bound, Move best_move)
+    void store(uint64_t key, int depth, Score score, TTBound bound, Move best_move)
     {
         TTEntry &entry = table[index_of(key)];
         entry.key = key;
         entry.depth = depth;
         entry.score = score;
-        entry.alpha = alpha;
-        entry.beta = beta;
         entry.bound = bound;
         entry.best_move = best_move;
     }
