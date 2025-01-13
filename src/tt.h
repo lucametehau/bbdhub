@@ -19,8 +19,6 @@ struct TTEntry
     uint64_t key = 0ull;
     int depth = -1;
     Score score = 0;
-    // Score alpha = -30000;
-    // Score beta = 30000;
     TTBound bound = TTBound::EXACT;
     Move best_move;
 };
