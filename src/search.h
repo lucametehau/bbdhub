@@ -1,10 +1,14 @@
 #pragma once
-#include "board.h"
-#include "util.h"
-#include <cstdint>
-#include <vector>
 
-// setup for searching thread
+#include "board.h"
+#include "move.h"
+#include "tt.h"
+#include "util.h"
+#include <array>
+#include <cstdint>
+#include <ctime>
+
+// Setup for searching thread
 
 namespace BBD::Engine
 {
@@ -14,88 +18,6 @@ inline void init()
     BBD::attacks::init();
     BBD::Zobrist::init();
 }
-
-enum class TTBound : uint8_t
-{
-    EXACT,
-    LOWER,
-    UPPER
-};
-
-struct TTEntry
-{
-    uint64_t key = 0ull;
-    int depth = -1;
-    Score score = 0;
-    Score alpha = -30000;
-    Score beta = 30000;
-    TTBound bound = TTBound::EXACT;
-    Move best_move;
-};
-
-// Transposition table class
-
-class TranspositionTable
-{
-  private:
-    static constexpr size_t TT_SIZE = 1 << 20; // can be modified!
-
-    std::vector<TTEntry> table;
-
-  public:
-    TranspositionTable()
-    {
-        table.resize(TT_SIZE);
-    }
-
-    inline size_t index_of(uint64_t key) const
-    {
-        return static_cast<size_t>(key & (TT_SIZE - 1ULL));
-    }
-
-    bool probe(uint64_t key, int depth, Score &out_score, Score &out_alpha, Score &out_beta, TTBound &out_bound,
-               Move &out_move)
-    {
-        TTEntry &entry = table[index_of(key)];
-        if (entry.key == key)
-        {
-            if (entry.depth >= depth)
-            {
-                out_score = entry.score;
-                out_alpha = entry.alpha;
-                out_beta = entry.beta;
-                out_bound = entry.bound;
-                out_move = entry.best_move;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Store a new entry in TT
-
-    void store(uint64_t key, int depth, Score score, Score alpha, Score beta, TTBound bound, Move best_move)
-    {
-        TTEntry &entry = table[index_of(key)];
-        entry.key = key;
-        entry.depth = depth;
-        entry.score = score;
-        entry.alpha = alpha;
-        entry.beta = beta;
-        entry.bound = bound;
-        entry.best_move = best_move;
-    }
-
-    // Clear the table
-
-    void clear()
-    {
-        for (auto &e : table)
-        {
-            e = TTEntry();
-        }
-    }
-};
 
 class SearchLimiter
 {

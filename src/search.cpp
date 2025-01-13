@@ -2,6 +2,7 @@
 #include "eval.h"
 #include <cassert>
 #include <fstream>
+#include <iostream>
 
 namespace BBD::Engine
 {
