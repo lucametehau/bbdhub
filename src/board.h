@@ -291,7 +291,7 @@ class Board
         {
             if (at(sq) != Pieces::NO_PIECE)
             {
-                uint8_t piece_number = (at(sq).type() * 2 + current_color); // the 2nd term used to be current_color
+                uint8_t piece_number = (at(sq).type() * 2 + at(sq).color()); // the 2nd term used to be current_color
                 hash ^= BBD::Zobrist::piece_square_keys[piece_number * 64 + sq];
             }
         }
