@@ -25,7 +25,6 @@ class IncrementalHashCalcTest : public ::testing::Test
 // 1) BasicMoves
 // -----------------------------------------------------------------------------
 
-
 TEST_F(IncrementalHashCalcTest, BasicMoves)
 {
     uint64_t hash1 = board.hash_calc();
@@ -235,7 +234,6 @@ TEST_F(IncrementalHashCalcTest, BlackEnPassant)
 
     EXPECT_EQ(hash1, hash3);
 }
-
 
 TEST_F(IncrementalHashCalcTest, Promo1)
 {

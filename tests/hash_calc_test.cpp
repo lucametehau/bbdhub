@@ -25,7 +25,6 @@ class HashCalcTest : public ::testing::Test
 // 1) BasicMoves
 // -----------------------------------------------------------------------------
 
-
 TEST_F(HashCalcTest, BasicMoves)
 {
     uint64_t hash1 = board.hash_calc();
@@ -40,7 +39,6 @@ TEST_F(HashCalcTest, BasicMoves)
 
     EXPECT_EQ(hash1, hash3);
 }
-
 
 TEST_F(HashCalcTest, BasicMoves2)
 {
@@ -194,6 +192,3 @@ TEST_F(HashCalcTest, BlackEnPassant)
 
     EXPECT_EQ(hash1, hash3);
 }
-
-
-
