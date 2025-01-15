@@ -38,7 +38,7 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
     {
         Move move = moves[i];
         if (board.is_capture(move))
-            scores[i] = 100000 * board.at(move.to());
+            scores[i] = 100000 * int(board.at(move.to()));
         else
             scores[i] = history[board.player_color()][move.from()][move.to()];
     }

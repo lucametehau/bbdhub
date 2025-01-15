@@ -100,16 +100,16 @@ inline int board_evaluation(const Board &board)
         while (b)
         {
             Square sq = b.lsb_index();
-            mg += mg_table[p][sq ^ 56];
-            eg += eg_table[p][sq ^ 56];
+            mg += mg_table[p][sq];
+            eg += eg_table[p][sq];
             b ^= Bitboard(sq);
         }
         b = board.get_piece_bitboard(Colors::BLACK, p);
         while (b)
         {
             Square sq = b.lsb_index();
-            mg -= mg_table[p][sq];
-            eg -= eg_table[p][sq];
+            mg -= mg_table[p][sq ^ 56];
+            eg -= eg_table[p][sq ^ 56];
             b ^= Bitboard(sq);
         }
 

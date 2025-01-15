@@ -267,6 +267,8 @@ class Board
             land[current_color.flip()] |= pieces[current_color.flip()][p];
         }
 
+        cur_zobrist_hash = hash_calc();
+
         BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square, cur_zobrist_hash};
         board_state_array.push_back(current_state);
         checkers() = get_checkers();
@@ -290,7 +292,7 @@ class Board
             {
                 // uint8_t piece_number = (at(sq).type() * 2 + current_color); // the 2nd term used to be current_color
                 // hash ^= BBD::Zobrist::piece_square_keys[piece_number * 64 + sq];
-                hash ^= BBD::Zobrist::piece_square_keys[at(sq) * 64 + sq];
+                hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(sq)) + sq];
             }
         }
 
@@ -376,7 +378,7 @@ class Board
             pieces[current_color.flip()][squares[to].type()].set_bit(to, false);
 
             // zobrist incremental update (part 2)
-            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(to) * 64 + to];
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(to)) + to];
 
             land[current_color.flip()].set_bit(to, false);
             captured = squares[to];
@@ -441,8 +443,8 @@ class Board
             pieces[current_color][PieceTypes::KING].set_bit(to, true);
 
             // zobrist incremental update part 4
-            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + from];
-            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + to];
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + from];
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + to];
 
             land[current_color].set_bit(from, false);
             land[current_color].set_bit(to, true);
@@ -466,7 +468,7 @@ class Board
             pieces[current_color.flip()][PieceTypes::PAWN].set_bit(to_pos, false);
 
             // zobrist incremental update part 5
-            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(to_pos) * 64 + to_pos];
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(to_pos)) + to_pos];
 
             land[current_color.flip()].set_bit(to_pos, false);
             captured = squares[to_pos];
@@ -480,14 +482,14 @@ class Board
             pieces[current_color][PieceTypes::PAWN].set_bit(from, false);
 
             // zobrist incremental update part 6
-            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + from];
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + from];
 
             land[current_color].set_bit(from, false);
             squares[from] = (current_color ? Piece(2 * move.promotion_piece() + 1) : Piece(2 * move.promotion_piece()));
             pieces[current_color][move.promotion_piece()].set_bit(to, true);
 
             // zobrist incremetal update part 7
-            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + from];
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + from];
             // new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + to];
 
             land[current_color].set_bit(to, true);
@@ -506,8 +508,8 @@ class Board
         pieces[current_color][squares[from].type()].set_bit(to, true);
 
         // zobrist incremetal update part 8
-        new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + from];
-        new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + to];
+        new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + from];
+        new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + to];
 
         land[current_color].set_bit(from, false);
         land[current_color].set_bit(to, true);
