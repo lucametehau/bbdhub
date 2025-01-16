@@ -1,12 +1,15 @@
 #pragma once
 
+#include "incbin.h"
 #include <array>
 #include <cassert>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 
 namespace BBD::NNUE
 {
+
 // TODO: make HalfKP
 class NNUENetwork
 {
@@ -93,21 +96,6 @@ class NNUENetwork
         return output;
     }
 
-    static bool load_from_file(const std::string &filename)
-    {
-        std::ifstream file(filename, std::ios::binary);
-        if (!file)
-            std::cerr << "ERROE!\n";
-        if (!file)
-            return false;
-
-        file.read(reinterpret_cast<char *>(weights1.data()), sizeof(weights1));
-        file.read(reinterpret_cast<char *>(bias1.data()), sizeof(int16_t) * HIDDEN_SIZE);
-        file.read(reinterpret_cast<char *>(weights2[0].data()), sizeof(int16_t) * HIDDEN_SIZE);
-        file.read(reinterpret_cast<char *>(weights2[1].data()), sizeof(int16_t) * HIDDEN_SIZE);
-        file.read(reinterpret_cast<char *>(&bias2), sizeof(int16_t));
-
-        return true;
-    }
+    static bool load_from_file(const std::string &filename);
 };
 } // namespace BBD::NNUE
