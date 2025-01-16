@@ -80,7 +80,7 @@ class SearchThread
     uint64_t nodes;
 
   public:
-    void order_moves(MoveList &moves, int nr_moves, const Move tt_move = Move());
+    void order_moves(MoveList &moves, int nr_moves, const Move tt_move = NULL_MOVE);
 
     Score quiescence(Score alpha, Score beta);
 

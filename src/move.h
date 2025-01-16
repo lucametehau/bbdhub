@@ -85,6 +85,11 @@ class Move
             move_str += promotion_piece() == PieceTypes::KNIGHT ? 'k' : promotion_piece().to_char();
         return move_str;
     }
+
+    bool operator==(const Move &other) const
+    {
+        return m_move == other.m_move;
+    }
 };
 
 constexpr Move NULL_MOVE = Move(); // useful later on

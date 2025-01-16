@@ -37,7 +37,7 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move
     {
         Move move = moves[i];
 
-        if (!(tt_move == Move()) && move == tt_move)
+        if (move == tt_move)
         {
             // Give the TT move a huge bonus so it sorts first
             scores[i] = 1000000000;
@@ -156,12 +156,12 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         TTBound tt_bound;
         Move tmp_move;
 
-        if (!root_node && tt.probe(pos_key, depth, tt_score, tt_bound, tmp_move))
+        if (tt.probe(pos_key, depth, tt_score, tt_bound, tmp_move))
         {
-            if (tt.entry_depth(pos_key) >= depth)
+            tt_move_from_probe = tmp_move;
+            tt_move_available = true;
+            if (!root_node && tt.entry_depth(pos_key) >= depth)
             {
-                tt_move_from_probe = tmp_move;
-                tt_move_available = true;
 
                 if (tt_bound == TTBound::EXACT)
                     return tt_score;
@@ -193,7 +193,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 
-    order_moves(moves, nr_moves, tt_move_available ? tt_move_from_probe : Move());
+    order_moves(moves, nr_moves, tt_move_available ? tt_move_from_probe : NULL_MOVE);
 
     Score best = -INF;
     int played = 0;
