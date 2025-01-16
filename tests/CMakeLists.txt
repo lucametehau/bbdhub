@@ -22,6 +22,7 @@ add_executable(tests
         search_test.cpp
         hash_calc_test.cpp
         threefold_test.cpp
+        nnue_test.cpp
         incremental_hash_calc_test.cpp
         ../src/board.cpp
         ../src/search.cpp
@@ -32,7 +33,6 @@ target_compile_options(tests PRIVATE
     -Werror
     -g
     -O3
-    --verbose
     -std=c++20
 )
 

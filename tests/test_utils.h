@@ -113,4 +113,28 @@ inline uint64_t perft(Board &board, int depth, bool print)
 
     return nodes;
 }
+template <typename Layer> inline bool is_equal_layers(const Layer &a, const Layer &b)
+{
+    try
+    {
+        assert(a.num_inputs == b.num_inputs);
+        assert(a.num_outputs == b.num_outputs);
+
+        for (int i = 0; i < a.num_inputs; ++i)
+            for (int j = 0; j < a.num_outputs; ++j)
+                assert(a.weights[i][j] == b.weights[i][j]);
+
+        for (int i = 0; i < a.num_outputs; ++i)
+            assert(a.bias[i] == b.bias[i]);
+    }
+    catch (...)
+    {
+        return false;
+    }
+    return true;
+}
+template <typename T> inline T fast_sigmoid(const T &x)
+{
+    return x / (1 + std::abs(x));
+}
 } // namespace BBD::Tests

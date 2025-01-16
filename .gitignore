@@ -6,3 +6,4 @@ src/.vscode
 *.o
 /build/
 src/OpenBench/bbd
+drill/bullet

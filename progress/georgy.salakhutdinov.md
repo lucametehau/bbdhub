@@ -9,7 +9,7 @@ Current progress
 - Implemented and tested basic evaluation of the board (eval.h and evaluation_tests.cpp)
 - Implemented and tested 3-fold checking (board.h and threefold_test.cpp)
 - Fixed build errors in uci.h
-- Implemented and tested zobrist hash inctremental updates of the board after each move (in board.h make_move()), which led to massive improvement. Implemented tests for it (inctremental_hash_calc_test.cpp)
+- Implemented and tested zobrist hash inctremental updates after each move (in board.h make_move()), which led to a massive improvement. Implemented tests for it (inctremental_hash_calc_test.cpp)
 - Fixed bugs in set_fen() in board.h
 
 Last update: January 16th, 2025
