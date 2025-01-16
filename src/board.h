@@ -9,7 +9,6 @@
 #include "square.h"
 #include "zobrist.h"
 #include <array>
-#include <unordered_map>
 #include <vector>
 
 namespace BBD
@@ -52,10 +51,6 @@ class Board
     {
         return cur_zobrist_hash;
     }
-    int get_hash_cnt(uint64_t h)
-    {
-        return hash_cnt[h];
-    }
     int get_color()
     {
         return player_color();
@@ -65,6 +60,7 @@ class Board
     {
         half_moves.reserve(300);
         squares.fill(Pieces::NO_PIECE);
+        board_state_array.clear();
         board_state_array.reserve(500);
 
         castling_rights = 0b1111;               // bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
@@ -129,7 +125,7 @@ class Board
         }
 
         cur_zobrist_hash = hash_calc();
-        hash_cnt[cur_zobrist_hash]++;
+        // hash_cnt[cur_zobrist_hash]++;
         BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square, cur_zobrist_hash};
         board_state_array.push_back(current_state);
         checkers() = get_checkers();
@@ -145,6 +141,7 @@ class Board
     void set_fen(const std::string &fen)
     {
         half_moves.reserve(300);
+        board_state_array.clear();
         squares.fill(Pieces::NO_PIECE);
         pieces[Colors::WHITE].fill(Bitboard(0ull));
         pieces[Colors::BLACK].fill(Bitboard(0ull));
@@ -274,6 +271,8 @@ class Board
             land[current_color.flip()] |= pieces[current_color.flip()][p];
         }
 
+        cur_zobrist_hash = hash_calc();
+
         BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square, cur_zobrist_hash};
         board_state_array.push_back(current_state);
         checkers() = get_checkers();
@@ -294,8 +293,9 @@ class Board
         {
             if (at(sq) != Pieces::NO_PIECE)
             {
-                uint8_t piece_number = (at(sq).type() * 2 + current_color); // the 2nd term used to be current_color
-                hash ^= BBD::Zobrist::piece_square_keys[piece_number * 64 + sq];
+                // uint8_t piece_number = (at(sq).type() * 2 + current_color); // the 2nd term used to be current_color
+                // hash ^= BBD::Zobrist::piece_square_keys[piece_number * 64 + sq];
+                hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(sq)) + sq];
             }
         }
 
@@ -326,15 +326,20 @@ class Board
     /// \return
     void make_move(const Move &move)
     {
-        // record the board state before the move is made
-        BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square, cur_zobrist_hash};
-        // record the current state
-        board_state_array.push_back(current_state);
+        // zobrist incremental update (part 1)
+        uint64_t new_zobrsist_hash = cur_zobrist_hash;
+        new_zobrsist_hash ^= BBD::Zobrist::black_to_move;
+        if (en_passant_square != Squares::NO_SQUARE)
+        {
+            new_zobrsist_hash ^= BBD::Zobrist::en_passant_keys[en_passant_square];
+        }
+
         // clear previous target en_passant
         en_passant_square = Squares::NO_SQUARE;
 
         Square from = move.from();
         Square to = move.to();
+        Piece captured = Pieces::NO_PIECE;
 
         // castling 0x1111 - bit 0: WK, bit 1: WQ, bit 2: BK, bit 3: BQ
         // update castling when King moves
@@ -374,16 +379,21 @@ class Board
         if (squares[to] != Pieces::NO_PIECE)
         {
             pieces[current_color.flip()][squares[to].type()].set_bit(to, false);
+
+            // zobrist incremental update (part 2)
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(to)) + to];
+
             land[current_color.flip()].set_bit(to, false);
+            captured = squares[to];
             board_state_array.back().captured = squares[to];
             accumulators[0].remove_feature(feature_index(squares[to], to, Colors::BLACK));
             accumulators[1].remove_feature(feature_index(squares[to], to, Colors::WHITE));
         }
 
         // update castling when Rook is captured
-        if (board_state_array.back().captured.type() == PieceTypes::ROOK)
+        if (captured.type() == PieceTypes::ROOK)
         {
-            Color color_captured = board_state_array.back().captured.color();
+            Color color_captured = captured.color();
             if (color_captured == Colors::WHITE)
             {
                 if (to == Squares::A1)
@@ -408,11 +418,39 @@ class Board
             }
         }
 
+        // zobrist incremental update (part 3)
+        if (board_state_array.back().castling != castling_rights)
+        {
+            // previous casting rights
+            if (0b0001 & board_state_array.back().castling)
+                new_zobrsist_hash ^= BBD::Zobrist::castling_keys[0];
+            if ((1 << 1) & board_state_array.back().castling)
+                new_zobrsist_hash ^= BBD::Zobrist::castling_keys[1];
+            if ((1 << 2) & board_state_array.back().castling)
+                new_zobrsist_hash ^= BBD::Zobrist::castling_keys[2];
+            if ((1 << 3) & board_state_array.back().castling)
+                new_zobrsist_hash ^= BBD::Zobrist::castling_keys[3];
+
+            // new castling rights
+            if (0b0001 & castling_rights)
+                new_zobrsist_hash ^= BBD::Zobrist::castling_keys[0];
+            if ((1 << 1) & castling_rights)
+                new_zobrsist_hash ^= BBD::Zobrist::castling_keys[1];
+            if ((1 << 2) & castling_rights)
+                new_zobrsist_hash ^= BBD::Zobrist::castling_keys[2];
+            if ((1 << 3) & castling_rights)
+                new_zobrsist_hash ^= BBD::Zobrist::castling_keys[3];
+        }
+
         switch (move.type())
         {
         case CASTLE:
             pieces[current_color][PieceTypes::KING].set_bit(from, false);
             pieces[current_color][PieceTypes::KING].set_bit(to, true);
+
+            // zobrist incremental update part 4
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + from];
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + to];
 
             land[current_color].set_bit(from, false);
             land[current_color].set_bit(to, true);
@@ -434,8 +472,12 @@ class Board
         case ENPASSANT: {
             auto to_pos = to + 8 - 16 * current_color;
             pieces[current_color.flip()][PieceTypes::PAWN].set_bit(to_pos, false);
+
+            // zobrist incremental update part 5
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(to_pos)) + to_pos];
+
             land[current_color.flip()].set_bit(to_pos, false);
-            board_state_array.back().captured = squares[to_pos];
+            captured = squares[to_pos];
             squares[to_pos] = Pieces::NO_PIECE;
             break;
         }
@@ -444,9 +486,18 @@ class Board
         case PROMO_ROOK:
         case PROMO_QUEEN:
             pieces[current_color][PieceTypes::PAWN].set_bit(from, false);
+
+            // zobrist incremental update part 6
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + from];
+
             land[current_color].set_bit(from, false);
             squares[from] = (current_color ? Piece(2 * move.promotion_piece() + 1) : Piece(2 * move.promotion_piece()));
             pieces[current_color][move.promotion_piece()].set_bit(to, true);
+
+            // zobrist incremetal update part 7
+            new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + from];
+            // new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + to];
+
             land[current_color].set_bit(to, true);
             break;
         }
@@ -461,6 +512,10 @@ class Board
         // update the bitmap for moving piece
         pieces[current_color][squares[from].type()].set_bit(from, false);
         pieces[current_color][squares[from].type()].set_bit(to, true);
+
+        // zobrist incremetal update part 8
+        new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + from];
+        new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + to];
 
         land[current_color].set_bit(from, false);
         land[current_color].set_bit(to, true);
@@ -482,11 +537,24 @@ class Board
             full_moves++;
 
         current_color = current_color.flip();
+
+        // zobrist incremetal update part 9
+        if (en_passant_square != Squares::NO_SQUARE)
+        {
+            new_zobrsist_hash ^= BBD::Zobrist::en_passant_keys[en_passant_square];
+        }
+
+        // cur_zobrist_hash = hash_calc();
+        cur_zobrist_hash = new_zobrsist_hash;
+        // hash_cnt[cur_zobrist_hash]++;
+
+        // record the board state before the move is made
+        BoardState current_state{captured, castling_rights, en_passant_square, cur_zobrist_hash};
+        // record the current state
+        board_state_array.push_back(current_state);
+
         pinned_pieces() = get_pinned_pieces();
         checkers() = get_checkers();
-
-        cur_zobrist_hash = hash_calc();
-        hash_cnt[cur_zobrist_hash]++;
     };
 
     /// Updates the Board, assuming the move is legal
@@ -494,6 +562,9 @@ class Board
     /// \return
     void undo_move(const Move &move)
     {
+        Piece prev_captured = board_state_array.back().captured;
+        board_state_array.pop_back();
+
         Square from = move.from();
         Square to = move.to();
 
@@ -503,16 +574,15 @@ class Board
         if (half_moves.back() == -1)
             half_moves.pop_back();
 
-        hash_cnt[cur_zobrist_hash]--;
+        // hash_cnt[cur_zobrist_hash]--;
 
         current_color = current_color.flip();
 
         // previous state
         BoardState prev_state = board_state_array.back();
-        castling_rights = prev_state.castling;
         en_passant_square = prev_state.en_passant;
+        castling_rights = prev_state.castling;
         cur_zobrist_hash = prev_state.zobrist_hash;
-        Piece prev_captured = prev_state.captured;
 
         switch (move.type())
         {
@@ -587,7 +657,7 @@ class Board
         {
             squares[from] = squares[to];
             squares[to] = Pieces::NO_PIECE;
-            board_state_array.pop_back();
+            // board_state_array.pop_back();
         }
         else
         {
@@ -595,7 +665,7 @@ class Board
             std::swap(squares[to], squares[from]);
 
             squares[to] = prev_captured;
-            board_state_array.pop_back();
+            // board_state_array.pop_back();
             if (squares[to] != Pieces::NO_PIECE)
             {
                 pieces[current_color.flip()][squares[to].type()].set_bit(to, true);
@@ -606,7 +676,16 @@ class Board
 
     bool threefold_check()
     {
-        return hash_cnt[hash_calc()] == 3;
+        int cnt = 0;
+        for (auto it : board_state_array)
+        {
+            cnt += (it.zobrist_hash == cur_zobrist_hash);
+            if (cnt == 3)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     const Bitboard get_pinned_pieces() const;
@@ -712,6 +791,7 @@ class Board
     uint64_t cur_zobrist_hash;
     std::unordered_map<uint64_t, int> hash_cnt;
     std::array<NNUE::NNUENetwork::Accumulator, 2> accumulators;
+    // std::unordered_map<uint64_t, int> hash_cnt;
 
     struct BoardState
     {

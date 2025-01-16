@@ -23,6 +23,7 @@ add_executable(tests
         hash_calc_test.cpp
         threefold_test.cpp
         nnue_test.cpp
+        incremental_hash_calc_test.cpp
         ../src/board.cpp
         ../src/search.cpp
 )
