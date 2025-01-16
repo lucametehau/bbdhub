@@ -4,11 +4,12 @@ Current progress
 - Reviewed initial Board Class pull request 
 - Implemented and tested Zobrist hashing (zobrist.h and board.h)
 - Implemeneted castling rights management in board.h (updating after make_move and after undo_move)
-- Implemented BoardState class in board.h which keeps track of castling rights, en passant target squares, captured pieces and zobrist hash altogether. This allowed me to replace captutred_pieces array by board_state_array and then update castling rights and en passant target square after each make_move and after each undo_move, and then implement move generation and other important functions
+- Implemented BoardState class in board.h which keeps track of castling rights, en passant target squares, captured pieces, zobrist hash, checkers and pinned_pieces altogether. This allowed me to replace captutred_pieces array by board_state_array and then quickly update castling rights and en passant target square after each make_move and after each undo_move, and then implement move generation and other important functions
 - Fixed some bugs
-- Implemented evaluation of the board (eval.h) and tests for it (evaluation_tests.cpp)
-- Implemented and tested 3-fold checking
-- Implemented inctremental updates of the zobrist hash of the board after each move (in board.h make_move()), which improved the efficiency since now we don't have to re-calcualte the whole hash at each step. Also implemented tests for it (zobrist_test.cpp)
+- Implemented and tested basic evaluation of the board (eval.h and evaluation_tests.cpp)
+- Implemented and tested 3-fold checking (board.h and threefold_test.cpp)
 - Fixed build errors in uci.h
+- Implemented and tested zobrist hash inctremental updates after each move (in board.h make_move()), which led to a massive improvement. Implemented tests for it (inctremental_hash_calc_test.cpp)
+- Fixed bugs in set_fen() in board.h
 
-Last update: January 7th, 2025
+Last update: January 16th, 2025
