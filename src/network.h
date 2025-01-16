@@ -96,7 +96,6 @@ class NNUENetwork
     static bool load_from_file(const std::string &filename)
     {
         std::ifstream file(filename, std::ios::binary);
-        std::ifstream float_file("./drill/nnue_v1-100/raw.bin", std::ios::binary);
         if (!file)
             std::cerr << "ERROE!\n";
         if (!file)
