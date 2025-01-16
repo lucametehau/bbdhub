@@ -40,9 +40,9 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move
         if (!(tt_move == Move()) && move == tt_move)
         {
             // Give the TT move a huge bonus so it sorts first
-            scores[i] = 100000000;
+            scores[i] = 1000000000;
         }
-        if (board.is_capture(move))
+        else if (board.is_capture(move))
         {
             scores[i] = 100000 * int(board.at(move.to()));
         }
