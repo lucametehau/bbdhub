@@ -1,4 +1,5 @@
 #pragma once
+#include "../tests/test_utils.h"
 #include "search.h"
 #include <cstring>
 #include <fstream>
@@ -115,6 +116,13 @@ void uci_loop()
                     }
                 }
             }
+        }
+        else if (command == "perft")
+        {
+            int depth;
+            iss >> depth;
+
+            std::cout << BBD::Tests::perft(board, depth, true) << "\n";
         }
         else if (command == "isready")
         {

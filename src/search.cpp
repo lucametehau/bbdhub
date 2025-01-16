@@ -7,6 +7,28 @@
 namespace BBD::Engine
 {
 
+inline void print_board(const Board &board)
+{
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        std::cout << rank + 1 << "  ";
+        for (int file = 0; file < 8; file++)
+        {
+            Piece piece = board.at(rank * 8 + file);
+            if (piece != Pieces::NO_PIECE)
+            {
+                std::cout << piece.to_char() << ' ';
+            }
+            else
+            {
+                std::cout << ". ";
+            }
+        }
+        std::cout << '\n';
+    }
+    std::cout << "\n   a b c d e f g h\n\n";
+}
+
 void SearchThread::order_moves(MoveList &moves, int nr_moves)
 {
     std::array<int, 256> scores;
@@ -16,7 +38,7 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
     {
         Move move = moves[i];
         if (board.is_capture(move))
-            scores[i] = 100000 * board.at(move.to());
+            scores[i] = 100000 * int(board.at(move.to()));
         else
             scores[i] = history[board.player_color()][move.from()][move.to()];
     }
@@ -123,7 +145,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         TTBound ttBound;
         Move ttMove;
 
-        if (tt.probe(posKey, depth, ttScore, ttBound, ttMove))
+        if (!root_node && tt.probe(posKey, depth, ttScore, ttBound, ttMove))
         {
             if (ttBound == TTBound::EXACT)
                 return ttScore;
