@@ -99,13 +99,9 @@ TEST_F(NNUETest, EnpassantTest)
     using namespace Squares;
 
     Board board;
-    std::cerr << "jai\n";
     board.set_fen("r1bqkbnr/1ppp2pp/2n5/1B2ppP1/p3P3/5N2/PPPP1P1P/RNBQK2R w KQkq f6 0 6");
-    std::cerr << "jai\n";
     int eval_start = NNUENetwork::evaluate(board.get_accumulators(), Colors::WHITE);
-    std::cerr << "jai\n";
     board.make_move(Move(G5, F6, ENPASSANT));
-    std::cerr << "jai\n";
     int eval1 = NNUENetwork::evaluate(board.get_accumulators(), Colors::BLACK);
 
     board.refresh_accumulators();
@@ -114,6 +110,5 @@ TEST_F(NNUETest, EnpassantTest)
     ASSERT_EQ(eval1, eval2);
 
     board.undo_move(Move(G5, F6, ENPASSANT));
-    std::cerr << "jai\n";
     ASSERT_EQ(NNUENetwork::evaluate(board.get_accumulators(), Colors::WHITE), eval_start);
 }
