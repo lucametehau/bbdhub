@@ -75,8 +75,7 @@ Score SearchThread::quiescence(Score alpha, Score beta)
         }
     }
 
-    Score eval = NNUE::NNUENetwork::evaluate(board.get_accumulators(), board.player_color()) *
-                 (board.player_color() == Colors::WHITE ? 1 : -1);
+    Score eval = NNUE::NNUENetwork::evaluate(board.get_accumulators(), board.player_color());
     Score best = eval;
 
     if (best >= beta)
@@ -162,7 +161,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
     // Reverse futility pruning
 
-    Score eval = board_evaluation(board) * (board.player_color() == Colors::WHITE ? 1 : -1);
+    Score eval = NNUE::NNUENetwork::evaluate(board.get_accumulators(), board.player_color());
 
     if (!root_node && !board.checkers() && depth <= 3)
     {

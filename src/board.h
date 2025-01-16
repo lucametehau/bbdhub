@@ -385,7 +385,6 @@ class Board
 
             land[current_color.flip()].set_bit(to, false);
             captured = squares[to];
-            board_state_array.back().captured = squares[to];
             accumulators[0].remove_feature(feature_index(squares[to], to, Colors::BLACK));
             accumulators[1].remove_feature(feature_index(squares[to], to, Colors::WHITE));
         }
