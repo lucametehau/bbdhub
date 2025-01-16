@@ -7,7 +7,7 @@
 namespace BBD::Engine
 {
 
-void SearchThread::order_moves(MoveList &moves, int nr_moves)
+void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move *tt_move)
 {
     std::array<int, 256> scores;
 
@@ -15,10 +15,19 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
     for (int i = 0; i < nr_moves; i++)
     {
         Move move = moves[i];
-        if (board.is_capture(move))
+        if (tt_move != nullptr && move == *tt_move)
+        {
+            // Give the TT move a huge bonus so it sorts first
+            scores[i] = 1000000;
+        }
+        else if (board.is_capture(move))
+        {
             scores[i] = 100000 * board.at(move.to());
+        }
         else
+        {
             scores[i] = history[board.player_color()][move.from()][move.to()];
+        }
     }
 
     // Simple sort
@@ -117,23 +126,29 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
     // Transposition table probe
 
-    uint64_t posKey = board.get_cur_hash();
-    {
-        Score ttScore;
-        TTBound ttBound;
-        Move ttMove;
+    uint64_t pos_key = board.get_cur_hash();
+    bool tt_move_available = false;
 
-        if (tt.probe(posKey, depth, ttScore, ttBound, ttMove))
+    Move tt_move_from_probe; // will be used for move ordering later
+    {
+        Score tt_score;
+        TTBound tt_bound;
+        Move tmp_move;
+        
+        if (tt.probe(pos_key, depth, tt_score, tt_bound, tmp_move))
         {
-            if (ttBound == TTBound::EXACT)
-                return ttScore;
-            if (ttBound == TTBound::LOWER && ttScore > alpha)
-                alpha = ttScore;
-            else if (ttBound == TTBound::UPPER && ttScore < beta)
-                beta = ttScore;
+            tt_move_from_probe = tmp_move;
+            tt_move_available = true;
+
+            if (tt_bound == TTBound::EXACT)
+                return tt_score;
+            if (tt_bound == TTBound::LOWER && tt_score > alpha)
+                alpha = tt_score;
+            else if (tt_bound == TTBound::UPPER && tt_score < beta)
+                beta = tt_score;
 
             if (alpha >= beta)
-                return ttScore;
+                return tt_score;
         }
     }
 
@@ -155,7 +170,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 
-    order_moves(moves, nr_moves);
+    order_moves(moves, nr_moves, tt_move_available ? &tt_move_from_probe : nullptr);
 
     Score best = -INF;
     int played = 0;
@@ -222,7 +237,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     else
         bound_type = TTBound::EXACT;
 
-    tt.store(posKey, depth, best, bound_type, best_move);
+    tt.store(pos_key, depth, best, bound_type, best_move);
 
     return best;
 }
