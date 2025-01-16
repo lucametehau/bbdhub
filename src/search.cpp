@@ -1,5 +1,4 @@
 #include "search.h"
-#include "eval.h"
 #include <cassert>
 #include <fstream>
 #include <iostream>

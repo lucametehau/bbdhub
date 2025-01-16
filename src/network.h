@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -19,6 +20,11 @@ class NNUENetwork
     {
         auto v = std::min(std::max(x, int16_t(0)), QA);
         return v;
+    }
+
+    constexpr static float f_clipped_relu(float x)
+    {
+        return std::max(0.0f, std::min(x, 1.0f));
     }
 
   private:
@@ -50,7 +56,6 @@ class NNUENetwork
             for (int i = 0; i < HIDDEN_SIZE; ++i)
             {
                 values[i] = NNUENetwork::bias1[i];
-                assert(-32768 <= values[i] && values[i] <= 32768);
             }
         }
 
@@ -59,7 +64,6 @@ class NNUENetwork
             for (int i = 0; i < HIDDEN_SIZE; ++i)
             {
                 values[i] += NNUENetwork::weights1[index][i];
-                assert(-32768 <= values[i] && values[i] <= 32768);
             }
         }
 
@@ -68,7 +72,6 @@ class NNUENetwork
             for (int i = 0; i < HIDDEN_SIZE; ++i)
             {
                 values[i] -= NNUENetwork::weights1[index][i];
-                assert(-32768 <= values[i] && values[i] <= 32768);
             }
         }
     };
@@ -93,6 +96,7 @@ class NNUENetwork
     static bool load_from_file(const std::string &filename)
     {
         std::ifstream file(filename, std::ios::binary);
+        std::ifstream float_file("./drill/nnue_v1-100/raw.bin", std::ios::binary);
         if (!file)
             std::cerr << "ERROE!\n";
         if (!file)
@@ -103,21 +107,6 @@ class NNUENetwork
         file.read(reinterpret_cast<char *>(weights2[0].data()), sizeof(int16_t) * HIDDEN_SIZE);
         file.read(reinterpret_cast<char *>(weights2[1].data()), sizeof(int16_t) * HIDDEN_SIZE);
         file.read(reinterpret_cast<char *>(&bias2), sizeof(int16_t));
-        //
-        for (int i = 0; i < INPUT_SIZE; ++i)
-            for (int j = 0; j < HIDDEN_SIZE; ++j)
-                std::cerr << weights1[i][j] << ' ';
-        std::cerr << '\n';
-
-        //        std::cerr << "_______ NOW WEIGHTS 2 __________\n";
-        //        for (int i = 0; i < HIDDEN_SIZE; ++i)
-        //            std::cerr << weights2[0][i] << ' ';
-        //        std::cerr << '\n';
-        //
-        //        for (int i = 0; i < HIDDEN_SIZE; ++i)
-        //            std::cerr << weights2[1][i] << ' ';
-        //        std::cerr << '\n';
-        //        std::cerr << "_________________\n";
 
         return true;
     }

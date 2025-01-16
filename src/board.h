@@ -58,7 +58,10 @@ class Board
 
     Board()
     {
+        half_moves.clear();
         half_moves.reserve(300);
+        accumulators.clear();
+        accumulators.reserve(300);
         squares.fill(Pieces::NO_PIECE);
         board_state_array.clear();
         board_state_array.reserve(500);
@@ -130,6 +133,7 @@ class Board
         board_state_array.push_back(current_state);
         checkers() = get_checkers();
         pinned_pieces() = get_pinned_pieces();
+        accumulators.emplace_back();
         refresh_accumulators();
     };
 
@@ -140,7 +144,10 @@ class Board
 
     void set_fen(const std::string &fen)
     {
+        half_moves.clear();
         half_moves.reserve(300);
+        accumulators.clear();
+        accumulators.reserve(300);
         board_state_array.clear();
         squares.fill(Pieces::NO_PIECE);
         pieces[Colors::WHITE].fill(Bitboard(0ull));
@@ -277,6 +284,7 @@ class Board
         board_state_array.push_back(current_state);
         checkers() = get_checkers();
         pinned_pieces() = get_pinned_pieces();
+        accumulators.emplace_back();
         refresh_accumulators();
     };
 
@@ -326,6 +334,9 @@ class Board
     /// \return
     void make_move(const Move &move)
     {
+        accumulators.push_back(accumulators.back());
+        auto &accumulator = accumulators.back();
+
         // zobrist incremental update (part 1)
         uint64_t new_zobrsist_hash = cur_zobrist_hash;
         new_zobrsist_hash ^= BBD::Zobrist::black_to_move;
@@ -385,8 +396,8 @@ class Board
 
             land[current_color.flip()].set_bit(to, false);
             captured = squares[to];
-            accumulators[0].remove_feature(feature_index(squares[to], to, Colors::BLACK));
-            accumulators[1].remove_feature(feature_index(squares[to], to, Colors::WHITE));
+            accumulator[0].remove_feature(feature_index(squares[to], to, Colors::BLACK));
+            accumulator[1].remove_feature(feature_index(squares[to], to, Colors::WHITE));
         }
 
         // update castling when Rook is captured
@@ -451,6 +462,11 @@ class Board
             new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + from];
             new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + to];
 
+            accumulator[0].remove_feature(feature_index(at(from), from, Colors::BLACK));
+            accumulator[1].remove_feature(feature_index(at(from), from, Colors::WHITE));
+            accumulator[0].add_feature(feature_index(at(from), to, Colors::BLACK));
+            accumulator[1].add_feature(feature_index(at(from), to, Colors::WHITE));
+
             land[current_color].set_bit(from, false);
             land[current_color].set_bit(to, true);
 
@@ -475,6 +491,9 @@ class Board
             // zobrist incremental update part 5
             new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(to_pos)) + to_pos];
 
+            accumulator[0].remove_feature(feature_index(at(to_pos), to_pos, Colors::BLACK));
+            accumulator[1].remove_feature(feature_index(at(to_pos), to_pos, Colors::WHITE));
+
             land[current_color.flip()].set_bit(to_pos, false);
             captured = squares[to_pos];
             squares[to_pos] = Pieces::NO_PIECE;
@@ -489,12 +508,18 @@ class Board
             // zobrist incremental update part 6
             new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + from];
 
+            accumulator[0].remove_feature(feature_index(at(from), from, Colors::BLACK));
+            accumulator[1].remove_feature(feature_index(at(from), from, Colors::WHITE));
+
             land[current_color].set_bit(from, false);
             squares[from] = (current_color ? Piece(2 * move.promotion_piece() + 1) : Piece(2 * move.promotion_piece()));
             pieces[current_color][move.promotion_piece()].set_bit(to, true);
 
             // zobrist incremetal update part 7
             new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(from)) + from];
+
+            accumulator[0].add_feature(feature_index(at(from), from, Colors::BLACK));
+            accumulator[1].add_feature(feature_index(at(from), from, Colors::WHITE));
             // new_zobrsist_hash ^= BBD::Zobrist::piece_square_keys[at(from) * 64 + to];
 
             land[current_color].set_bit(to, true);
@@ -522,10 +547,10 @@ class Board
         if (squares[from].type() == PieceTypes::PAWN)
             half_moves.push_back(-1);
 
-        accumulators[0].remove_feature(feature_index(squares[from], from, Colors::BLACK));
-        accumulators[1].remove_feature(feature_index(squares[from], from, Colors::WHITE));
-        accumulators[0].add_feature(feature_index(squares[from], to, Colors::BLACK));
-        accumulators[1].add_feature(feature_index(squares[from], to, Colors::WHITE));
+        accumulator[0].remove_feature(feature_index(squares[from], from, Colors::BLACK));
+        accumulator[1].remove_feature(feature_index(squares[from], from, Colors::WHITE));
+        accumulator[0].add_feature(feature_index(squares[from], to, Colors::BLACK));
+        accumulator[1].add_feature(feature_index(squares[from], to, Colors::WHITE));
 
         // make move
         std::swap(squares[to], squares[from]);
@@ -561,6 +586,7 @@ class Board
     /// \return
     void undo_move(const Move &move)
     {
+        accumulators.pop_back();
         Piece prev_captured = board_state_array.back().captured;
         board_state_array.pop_back();
 
@@ -607,6 +633,7 @@ class Board
         case ENPASSANT: {
             auto to_pos = to + 8 - 16 * current_color;
             pieces[current_color.flip()][PieceTypes::PAWN].set_bit(to_pos, true);
+
             land[current_color.flip()].set_bit(to_pos, true);
             squares[to_pos] = prev_captured;
             break;
@@ -617,6 +644,7 @@ class Board
         case PROMO_QUEEN:
             auto promotion_piece_type = move.promotion_piece();
             pieces[current_color][promotion_piece_type].set_bit(to, false);
+
             land[current_color].set_bit(to, false);
             squares[from] = prev_captured;
             if (prev_captured != Pieces::NO_PIECE)
@@ -639,18 +667,6 @@ class Board
 
         land[current_color].set_bit(to, false);
         land[current_color].set_bit(from, true);
-
-        accumulators[0].remove_feature(feature_index(squares[to], to, Colors::BLACK));
-        accumulators[1].remove_feature(feature_index(squares[to], to, Colors::WHITE));
-
-        accumulators[0].add_feature(feature_index(squares[to], from, Colors::BLACK));
-        accumulators[1].add_feature(feature_index(squares[to], from, Colors::WHITE));
-
-        if (prev_captured)
-        {
-            accumulators[0].add_feature(feature_index(prev_captured, to, Colors::BLACK));
-            accumulators[1].add_feature(feature_index(prev_captured, to, Colors::WHITE));
-        }
 
         if (move.type() == ENPASSANT)
         {
@@ -752,15 +768,16 @@ class Board
     // TODO: incrementally update
     void refresh_accumulators()
     {
-        accumulators = std::array<NNUE::NNUENetwork::Accumulator, 2>{};
+        std::array<NNUE::NNUENetwork::Accumulator, 2> &accumulator = accumulators.back();
+        accumulator = std::array<NNUE::NNUENetwork::Accumulator, 2>{};
 
         for (Square sq = 0; sq < 64; sq++)
         {
             Piece piece = squares[sq];
             if (piece)
             {
-                accumulators[0].add_feature(feature_index(piece, sq, Colors::BLACK));
-                accumulators[1].add_feature(feature_index(piece, sq, Colors::WHITE));
+                accumulator[0].add_feature(feature_index(piece, sq, Colors::BLACK));
+                accumulator[1].add_feature(feature_index(piece, sq, Colors::WHITE));
             }
         }
     }
@@ -770,14 +787,12 @@ class Board
          * maps feature to accumulator index (piece.type() + 6 * color()) * 64 + square
          * white_pawn = 0, white_knight = 1, ..., black_pawn = 6, ..., black_king = 11 (for white perspective)
          */
-        return perspective == Colors::BLACK ? (piece.color() * 6 + piece.type()) * 64 + square
-                                            : ((piece.color().flip()) * 6 + piece.type()) * 64 + square;
+        return perspective == Colors::BLACK ? 64 * (piece.color() * 6 + piece.type()) + (square ^ 56)
+                                            : 64 * ((piece.color().flip()) * 6 + piece.type()) + square;
     }
     std::array<NNUE::NNUENetwork::Accumulator, 2> &get_accumulators()
     {
-        // for now
-        refresh_accumulators();
-        return accumulators;
+        return accumulators.back();
     }
 
   private:
@@ -788,8 +803,7 @@ class Board
     uint8_t castling_rights;
     Square en_passant_square;
     uint64_t cur_zobrist_hash;
-    std::unordered_map<uint64_t, int> hash_cnt;
-    std::array<NNUE::NNUENetwork::Accumulator, 2> accumulators;
+    std::vector<std::array<NNUE::NNUENetwork::Accumulator, 2>> accumulators;
     // std::unordered_map<uint64_t, int> hash_cnt;
 
     struct BoardState
