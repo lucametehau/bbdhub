@@ -87,6 +87,12 @@ class Piece
     {
         return Color(m_piece & 1);
     }
+
+    operator int() const
+    {
+        return static_cast<int>(m_piece);
+    }
+
     operator bool() const
     {
         return m_piece != 255;

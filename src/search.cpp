@@ -7,6 +7,50 @@
 namespace BBD::Engine
 {
 
+inline void print_board(const Board &board)
+{
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        std::cout << rank + 1 << "  ";
+        for (int file = 0; file < 8; file++)
+        {
+            Piece piece = board.at(rank * 8 + file);
+            if (piece != Pieces::NO_PIECE)
+            {
+                std::cout << piece.to_char() << ' ';
+            }
+            else
+            {
+                std::cout << ". ";
+            }
+        }
+        std::cout << '\n';
+    }
+    std::cout << "\n   a b c d e f g h\n\n";
+}
+
+inline void print_board(const Board &board)
+{
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        std::cout << rank + 1 << "  ";
+        for (int file = 0; file < 8; file++)
+        {
+            Piece piece = board.at(rank * 8 + file);
+            if (piece != Pieces::NO_PIECE)
+            {
+                std::cout << piece.to_char() << ' ';
+            }
+            else
+            {
+                std::cout << ". ";
+            }
+        }
+        std::cout << '\n';
+    }
+    std::cout << "\n   a b c d e f g h\n\n";
+}
+
 void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move *tt_move)
 {
     std::array<int, 256> scores;
@@ -22,8 +66,10 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move *tt_mov
         }
         else if (board.is_capture(move))
         {
-            scores[i] = 100000 * board.at(move.to());
+            scores[i] = 100000 * int(board.at(move.to()));
         }
+        if (board.is_capture(move))
+            scores[i] = 100000 * int(board.at(move.to()));
         else
         {
             scores[i] = history[board.player_color()][move.from()][move.to()];
@@ -135,7 +181,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         TTBound tt_bound;
         Move tmp_move;
         
-        if (tt.probe(pos_key, depth, tt_score, tt_bound, tmp_move))
+        if (!root_node && tt.probe(pos_key, depth, tt_score, tt_bound, tmp_move))
         {
             tt_move_from_probe = tmp_move;
             tt_move_available = true;
