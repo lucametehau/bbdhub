@@ -147,7 +147,6 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     // Transposition table probe
-
     uint64_t pos_key = board.get_cur_hash();
     bool tt_move_available = false;
 
@@ -175,7 +174,6 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     // Reverse futility pruning
-
     Score eval = board_evaluation(board) * (board.player_color() == Colors::WHITE ? 1 : -1);
 
     if (!root_node && !board.checkers() && depth <= 3)
@@ -188,7 +186,6 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     // Principal variation search
-
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 
@@ -245,12 +242,10 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     // Checkmate / stalemate detection
-
     if (played == 0)
         return board.checkers() ? -INF + ply : 0;
 
     // Store in transposition table
-
     TTBound bound_type;
     if (best <= alpha_original)
         bound_type = TTBound::UPPER;
@@ -273,7 +268,6 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     tt.clear();
 
     // Fill history with 0 at the beginning
-
     for (auto &t : history)
     {
         for (auto &p : t)
