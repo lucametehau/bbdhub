@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <ctime>
 
+#include <filesystem>
+
 // Setup for searching thread
 
 namespace BBD::Engine
@@ -17,6 +19,7 @@ inline void init()
 {
     BBD::attacks::init();
     BBD::Zobrist::init();
+    BBD::NNUE::NNUENetwork::load_from_file("./drill/nnue_v1-100/quantised.bin");
 }
 
 class SearchLimiter

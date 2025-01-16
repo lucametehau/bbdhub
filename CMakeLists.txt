@@ -32,6 +32,7 @@ set(SOURCES
         src/main.cpp
         src/board.cpp
         src/search.cpp
+        src/network.cpp
 )
 
 add_executable(bbd ${SOURCES})

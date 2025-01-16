@@ -98,6 +98,11 @@ class Piece
         return m_piece != 255;
     }
 
+    constexpr operator uint8_t() const
+    {
+        return m_piece;
+    }
+
     constexpr bool operator==(const Piece &other) const
     {
         return m_piece == other.m_piece;
