@@ -37,6 +37,20 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move
     for (int i = 0; i < nr_moves; i++)
     {
         Move move = moves[i];
+        int bonus = (!(tt_move == Move()) && move == tt_move) ? 100000000 : 0;
+
+        if (board.is_capture(move))
+        {
+            scores[i] = bonus + 100000 * int(board.at(move.to()));
+        }
+        else
+        {
+            scores[i] = bonus + history[board.player_color()][move.from()][move.to()];
+        }
+
+        /*
+        Move move = moves[i];
+
         if (!(tt_move == Move()) && move == tt_move)
         {
             // Give the TT move a huge bonus so it sorts first
@@ -50,6 +64,7 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move
         {
             scores[i] = history[board.player_color()][move.from()][move.to()];
         }
+        */
     }
 
     // Simple sort
