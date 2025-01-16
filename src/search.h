@@ -77,7 +77,7 @@ class SearchThread
     uint64_t nodes;
 
   public:
-    void order_moves(MoveList &moves, int nr_moves, const Move *tt_move = nullptr);
+    void order_moves(MoveList &moves, int nr_moves, const Move tt_move = Move());
 
     Score quiescence(Score alpha, Score beta);
 

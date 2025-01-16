@@ -29,7 +29,7 @@ inline void print_board(const Board &board)
     std::cout << "\n   a b c d e f g h\n\n";
 }
 
-void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move *tt_move)
+void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move)
 {
     std::array<int, 256> scores;
 
@@ -37,10 +37,10 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move *tt_mov
     for (int i = 0; i < nr_moves; i++)
     {
         Move move = moves[i];
-        if (tt_move != nullptr && move == *tt_move)
+        if (!(tt_move == Move()) && move == tt_move)
         {
             // Give the TT move a huge bonus so it sorts first
-            scores[i] = 1000000;
+            scores[i] = 100000000;
         }
         if (board.is_capture(move))
         {
@@ -192,7 +192,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 
-    order_moves(moves, nr_moves, tt_move_available ? &tt_move_from_probe : nullptr);
+    order_moves(moves, nr_moves, tt_move_available ? tt_move_from_probe : Move());
 
     Score best = -INF;
     int played = 0;
