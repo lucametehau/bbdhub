@@ -124,6 +124,10 @@ void uci_loop()
         {
             exit(0);
         }
+        else if (command == "eval")
+        {
+            std::cout << NNUE::NNUENetwork::evaluate(board.get_accumulators(), board.get_color()) << '\n';
+        }
     }
 }
 

@@ -134,6 +134,7 @@ class Board
         board_state_array.push_back(current_state);
         checkers() = get_checkers();
         pinned_pieces() = get_pinned_pieces();
+        refresh_accumulators();
     };
 
     Board(const std::string &fen)
@@ -277,13 +278,12 @@ class Board
         board_state_array.push_back(current_state);
         checkers() = get_checkers();
         pinned_pieces() = get_pinned_pieces();
+        refresh_accumulators();
     };
 
     uint64_t hash_calc()
     {
         uint64_t hash = 0;
-        Color current_color = get_color();
-
         if (!current_color)
         { // black
             hash ^= BBD::Zobrist::black_to_move;
@@ -376,6 +376,8 @@ class Board
             pieces[current_color.flip()][squares[to].type()].set_bit(to, false);
             land[current_color.flip()].set_bit(to, false);
             board_state_array.back().captured = squares[to];
+            accumulators[0].remove_feature(feature_index(squares[to], to, Colors::BLACK));
+            accumulators[1].remove_feature(feature_index(squares[to], to, Colors::WHITE));
         }
 
         // update castling when Rook is captured
@@ -465,6 +467,11 @@ class Board
 
         if (squares[from].type() == PieceTypes::PAWN)
             half_moves.push_back(-1);
+
+        accumulators[0].remove_feature(feature_index(squares[from], from, Colors::BLACK));
+        accumulators[1].remove_feature(feature_index(squares[from], from, Colors::WHITE));
+        accumulators[0].add_feature(feature_index(squares[from], to, Colors::BLACK));
+        accumulators[1].add_feature(feature_index(squares[from], to, Colors::WHITE));
 
         // make move
         std::swap(squares[to], squares[from]);
@@ -564,6 +571,18 @@ class Board
         land[current_color].set_bit(to, false);
         land[current_color].set_bit(from, true);
 
+        accumulators[0].remove_feature(feature_index(squares[to], to, Colors::BLACK));
+        accumulators[1].remove_feature(feature_index(squares[to], to, Colors::WHITE));
+
+        accumulators[0].add_feature(feature_index(squares[to], from, Colors::BLACK));
+        accumulators[1].add_feature(feature_index(squares[to], from, Colors::WHITE));
+
+        if (prev_captured)
+        {
+            accumulators[0].add_feature(feature_index(prev_captured, to, Colors::BLACK));
+            accumulators[1].add_feature(feature_index(prev_captured, to, Colors::WHITE));
+        }
+
         if (move.type() == ENPASSANT)
         {
             squares[from] = squares[to];
@@ -653,24 +672,34 @@ class Board
     }
 
     // TODO: incrementally update
-    void refresh_accumulator()
+    void refresh_accumulators()
     {
-        accumulator = NNUE::NNUENetwork::Accumulator();
+        accumulators = std::array<NNUE::NNUENetwork::Accumulator, 2>{};
 
         for (Square sq = 0; sq < 64; sq++)
         {
             Piece piece = squares[sq];
             if (piece)
-                accumulator.add_feature(feature_index(piece, sq));
+            {
+                accumulators[0].add_feature(feature_index(piece, sq, Colors::BLACK));
+                accumulators[1].add_feature(feature_index(piece, sq, Colors::WHITE));
+            }
         }
     }
-    static int feature_index(Piece piece, Square square)
+    static int feature_index(Piece piece, Square square, Color perspective)
     {
-        return (piece.color() * 6 + piece.type()) * 64 + square;
+        /*
+         * maps feature to accumulator index (piece.type() + 6 * color()) * 64 + square
+         * white_pawn = 0, white_knight = 1, ..., black_pawn = 6, ..., black_king = 11 (for white perspective)
+         */
+        return perspective == Colors::BLACK ? (piece.color() * 6 + piece.type()) * 64 + square
+                                            : ((piece.color().flip()) * 6 + piece.type()) * 64 + square;
     }
-    NNUE::NNUENetwork::Accumulator &get_accumulator()
+    std::array<NNUE::NNUENetwork::Accumulator, 2> &get_accumulators()
     {
-        return accumulator;
+        // for now
+        refresh_accumulators();
+        return accumulators;
     }
 
   private:
@@ -682,7 +711,7 @@ class Board
     Square en_passant_square;
     uint64_t cur_zobrist_hash;
     std::unordered_map<uint64_t, int> hash_cnt;
-    NNUE::NNUENetwork::Accumulator accumulator;
+    std::array<NNUE::NNUENetwork::Accumulator, 2> accumulators;
 
     struct BoardState
     {

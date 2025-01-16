@@ -22,7 +22,6 @@ class NNUETest : public ::testing::Test
 
     void create_test_network()
     {
-        // Create quantised.bin with proper format
         std::ofstream file("test.bin", std::ios::binary | std::ios::trunc);
         ASSERT_TRUE(file.is_open());
 
@@ -73,6 +72,6 @@ TEST_F(NNUETest, InitialPosition)
     ASSERT_TRUE(NNUENetwork::load_from_file("test.bin"));
 
     Board board;
-    int eval = NNUENetwork::evaluate(board.get_accumulator());
+    int eval = NNUENetwork::evaluate(board.get_accumulators(), Colors::WHITE);
     std::cerr << eval << std::endl;
 }

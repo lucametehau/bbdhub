@@ -52,8 +52,8 @@ Score SearchThread::quiescence(Score alpha, Score beta)
         }
     }
 
-        Score eval =
-            NNUE::NNUENetwork::evaluate(board.get_accumulator()) * (board.player_color() == Colors::WHITE ? 1 : -1);
+    Score eval = NNUE::NNUENetwork::evaluate(board.get_accumulators(), board.player_color()) *
+                 (board.player_color() == Colors::WHITE ? 1 : -1);
     Score best = eval;
 
     if (best >= beta)
