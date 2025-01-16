@@ -38,6 +38,11 @@ class TranspositionTable
         table.resize(TT_SIZE);
     }
 
+    inline int entry_depth(uint64_t key) const
+    {
+        return table[index_of(key)].depth;
+    }
+
     inline size_t index_of(uint64_t key) const
     {
         return static_cast<size_t>(key & (TT_SIZE - 1ULL));
@@ -48,19 +53,15 @@ class TranspositionTable
         TTEntry &entry = table[index_of(key)];
         if (entry.key == key)
         {
-            if (entry.depth >= depth)
-            {
-                out_score = entry.score;
-                out_bound = entry.bound;
-                out_move = entry.best_move;
-                return true;
-            }
+            out_score = entry.score;
+            out_bound = entry.bound;
+            out_move = entry.best_move;
+            return true;
         }
         return false;
     }
 
     // Store a new entry in TT
-
     void store(uint64_t key, int depth, Score score, TTBound bound, Move best_move)
     {
         TTEntry &entry = table[index_of(key)];
@@ -72,7 +73,6 @@ class TranspositionTable
     }
 
     // Clear the table
-
     void clear()
     {
         for (auto &e : table)

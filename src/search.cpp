@@ -37,19 +37,6 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move
     for (int i = 0; i < nr_moves; i++)
     {
         Move move = moves[i];
-        int bonus = (!(tt_move == Move()) && move == tt_move) ? 100000000 : 0;
-
-        if (board.is_capture(move))
-        {
-            scores[i] = bonus + 100000 * int(board.at(move.to()));
-        }
-        else
-        {
-            scores[i] = bonus + history[board.player_color()][move.from()][move.to()];
-        }
-
-        /*
-        Move move = moves[i];
 
         if (!(tt_move == Move()) && move == tt_move)
         {
@@ -64,7 +51,6 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move
         {
             scores[i] = history[board.player_color()][move.from()][move.to()];
         }
-        */
     }
 
     // Simple sort
@@ -171,13 +157,13 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         TTBound tt_bound;
         Move tmp_move;
 
-        if (tt.probe(pos_key, 0, tt_score, tt_bound, tmp_move))
+        if (!root_node && tt.probe(pos_key, depth, tt_score, tt_bound, tmp_move))
         {
-            tt_move_from_probe = tmp_move;
-            tt_move_available = true;
-
-            if (!root_node && tt.probe(pos_key, depth, tt_score, tt_bound, tmp_move))
+            if (tt.entry_depth(pos_key) >= depth)
             {
+                tt_move_from_probe = tmp_move;
+                tt_move_available = true;
+
                 if (tt_bound == TTBound::EXACT)
                     return tt_score;
                 if (tt_bound == TTBound::LOWER && tt_score > alpha)
@@ -189,24 +175,6 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
                     return tt_score;
             }
         }
-
-        /*
-        if (!root_node && tt.probe(pos_key, depth, tt_score, tt_bound, tmp_move))
-        {
-            tt_move_from_probe = tmp_move;
-            tt_move_available = true;
-
-            if (tt_bound == TTBound::EXACT)
-                return tt_score;
-            if (tt_bound == TTBound::LOWER && tt_score > alpha)
-                alpha = tt_score;
-            else if (tt_bound == TTBound::UPPER && tt_score < beta)
-                beta = tt_score;
-
-            if (alpha >= beta)
-                return tt_score;
-        }
-        */
     }
 
     // Reverse futility pruning
