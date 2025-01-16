@@ -171,6 +171,26 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         TTBound tt_bound;
         Move tmp_move;
 
+        if (tt.probe(pos_key, 0, tt_score, tt_bound, tmp_move))
+        {
+            tt_move_from_probe = tmp_move;
+            tt_move_available = true;
+
+            if (!root_node && tt.probe(pos_key, depth, tt_score, tt_bound, tmp_move))
+            {
+                if (tt_bound == TTBound::EXACT)
+                    return tt_score;
+                if (tt_bound == TTBound::LOWER && tt_score > alpha)
+                    alpha = tt_score;
+                else if (tt_bound == TTBound::UPPER && tt_score < beta)
+                    beta = tt_score;
+
+                if (alpha >= beta)
+                    return tt_score;
+            }
+        }
+
+        /*
         if (!root_node && tt.probe(pos_key, depth, tt_score, tt_bound, tmp_move))
         {
             tt_move_from_probe = tmp_move;
@@ -186,6 +206,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
             if (alpha >= beta)
                 return tt_score;
         }
+        */
     }
 
     // Reverse futility pruning
