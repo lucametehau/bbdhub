@@ -28,7 +28,7 @@ inline void print_board(const Board &board)
     std::cout << "\n   a b c d e f g h\n\n";
 }
 
-void SearchThread::order_moves(MoveList &moves, int nr_moves)
+void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move)
 {
     std::array<int, 256> scores;
 
@@ -36,10 +36,20 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
     for (int i = 0; i < nr_moves; i++)
     {
         Move move = moves[i];
-        if (board.is_capture(move))
+
+        if (move == tt_move)
+        {
+            // Give the TT move a huge bonus so it sorts first
+            scores[i] = 1000000000;
+        }
+        else if (board.is_capture(move))
+        {
             scores[i] = 100000 * int(board.at(move.to()));
+        }
         else
+        {
             scores[i] = history[board.player_color()][move.from()][move.to()];
+        }
     }
 
     // Simple sort
@@ -137,29 +147,31 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     // Transposition table probe
+    uint64_t pos_key = board.get_cur_hash();
+    Move tt_move = NULL_MOVE;
 
-    uint64_t posKey = board.get_cur_hash();
     {
-        Score ttScore;
-        TTBound ttBound;
-        Move ttMove;
+        Score tt_score;
+        TTBound tt_bound;
 
-        if (!root_node && tt.probe(posKey, depth, ttScore, ttBound, ttMove))
+        if (tt.probe(pos_key, depth, tt_score, tt_bound, tt_move))
         {
-            if (ttBound == TTBound::EXACT)
-                return ttScore;
-            if (ttBound == TTBound::LOWER && ttScore > alpha)
-                alpha = ttScore;
-            else if (ttBound == TTBound::UPPER && ttScore < beta)
-                beta = ttScore;
+            if (!root_node && tt.entry_depth(pos_key) >= depth)
+            {
+                if (tt_bound == TTBound::EXACT)
+                    return tt_score;
+                if (tt_bound == TTBound::LOWER && tt_score > alpha)
+                    alpha = tt_score;
+                else if (tt_bound == TTBound::UPPER && tt_score < beta)
+                    beta = tt_score;
 
-            if (alpha >= beta)
-                return ttScore;
+                if (alpha >= beta)
+                    return tt_score;
+            }
         }
     }
 
     // Reverse futility pruning
-
     Score eval = NNUE::NNUENetwork::evaluate(board.get_accumulators(), board.player_color());
 
     if (!root_node && !board.checkers() && depth <= 3)
@@ -172,11 +184,10 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     // Principal variation search
-
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 
-    order_moves(moves, nr_moves);
+    order_moves(moves, nr_moves, tt_move);
 
     Score best = -INF;
     int played = 0;
@@ -229,12 +240,10 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     // Checkmate / stalemate detection
-
     if (played == 0)
         return board.checkers() ? -INF + ply : 0;
 
     // Store in transposition table
-
     TTBound bound_type;
     if (best <= alpha_original)
         bound_type = TTBound::UPPER;
@@ -243,7 +252,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     else
         bound_type = TTBound::EXACT;
 
-    tt.store(posKey, depth, best, bound_type, best_move);
+    tt.store(pos_key, depth, best, bound_type, best_move);
 
     return best;
 }
@@ -257,7 +266,6 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     tt.clear();
 
     // Fill history with 0 at the beginning
-
     for (auto &t : history)
     {
         for (auto &p : t)

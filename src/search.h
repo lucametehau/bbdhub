@@ -11,7 +11,6 @@
 #include <filesystem>
 
 // Setup for searching thread
-
 namespace BBD::Engine
 {
 
@@ -80,7 +79,7 @@ class SearchThread
     uint64_t nodes;
 
   public:
-    void order_moves(MoveList &moves, int nr_moves);
+    void order_moves(MoveList &moves, int nr_moves, const Move tt_move = NULL_MOVE);
 
     Score quiescence(Score alpha, Score beta);
 
