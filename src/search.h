@@ -11,7 +11,6 @@
 #include <filesystem>
 
 // Setup for searching thread
-
 namespace BBD::Engine
 {
 

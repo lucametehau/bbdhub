@@ -148,21 +148,16 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
     // Transposition table probe
     uint64_t pos_key = board.get_cur_hash();
-    bool tt_move_available = false;
+    Move tt_move = NULL_MOVE;
 
-    Move tt_move_from_probe; // will be used for move ordering later
     {
         Score tt_score;
         TTBound tt_bound;
-        Move tmp_move;
 
-        if (tt.probe(pos_key, depth, tt_score, tt_bound, tmp_move))
+        if (tt.probe(pos_key, depth, tt_score, tt_bound, tt_move))
         {
-            tt_move_from_probe = tmp_move;
-            tt_move_available = true;
             if (!root_node && tt.entry_depth(pos_key) >= depth)
             {
-
                 if (tt_bound == TTBound::EXACT)
                     return tt_score;
                 if (tt_bound == TTBound::LOWER && tt_score > alpha)
@@ -177,7 +172,6 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     // Reverse futility pruning
-
     Score eval = NNUE::NNUENetwork::evaluate(board.get_accumulators(), board.player_color());
 
     if (!root_node && !board.checkers() && depth <= 3)
@@ -193,7 +187,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 
-    order_moves(moves, nr_moves, tt_move_available ? tt_move_from_probe : NULL_MOVE);
+    order_moves(moves, nr_moves, tt_move);
 
     Score best = -INF;
     int played = 0;

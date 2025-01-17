@@ -24,7 +24,6 @@ struct TTEntry
 };
 
 // Transposition table class
-
 class TranspositionTable
 {
   private:
