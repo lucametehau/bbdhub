@@ -272,7 +272,7 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
             p.fill(0);
     }
 
-    Score score;
+    Score score, alpha, beta;
     auto depth = 1;
     auto running = true;
     int limit_depth = limiter.get_mode() == SearchLimiter::SearchMode::DEPTH_SEARCH ? limiter.get_depth() : 100;
@@ -280,18 +280,50 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     start_clock();
     while (running && depth <= limit_depth) // limit how much we can search
     {
+        Score window = 30;
+        if (depth <= 4)
+        {
+            alpha = -INF;
+            beta = INF;
+        }
+        else
+        {
+            alpha = std::max<Score>(-INF, score - window);
+            beta = std::min<Score>(INF, score + window);
+        }
+
+        // aspiration windows loop
         try
         {
-            score = negamax<true>(-INF, INF, depth, 0);
-            std::cout << "info score " << score << " depth " << depth << " nodes " << nodes << " time "
-                      << get_time_since_start() - search_start_time << std::endl;
-            depth++;
-            thread_best_move = root_best_move; // only take into account full search results, for now
+            while (true)
+            {
+                score = negamax<true>(alpha, beta, depth, 0);
+                std::cout << "info score " << score << " depth " << depth << " nodes " << nodes << " time "
+                          << get_time_since_start() - search_start_time << std::endl;
+                thread_best_move = root_best_move; // only take into account full search results, for now
+
+                if (score <= alpha)
+                {
+                    alpha = std::max<Score>(-INF, alpha - window);
+                }
+                else if (score >= beta)
+                {
+                    beta = std::min<Score>(INF, beta + window);
+                }
+                else
+                {
+                    break;
+                }
+
+                window *= 2;
+            }
         }
         catch (...)
         {
             running = false;
         }
+
+        depth++;
     }
     std::cout << "bestmove " << thread_best_move.to_string() << std::endl;
 
