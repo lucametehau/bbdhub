@@ -17,7 +17,7 @@ bool NNUENetwork::load_from_file(const std::string &filename)
 #ifndef EVALFILE
     std::ifstream file(filename, std::ios::binary);
     if (!file)
-        std::cerr << "ERROE!\n";
+        std::cerr << "ERROR! Network file is missing!\n";
     if (!file)
         return false;
 
@@ -26,6 +26,7 @@ bool NNUENetwork::load_from_file(const std::string &filename)
     file.read(reinterpret_cast<char *>(weights2[0].data()), sizeof(int16_t) * HIDDEN_SIZE);
     file.read(reinterpret_cast<char *>(weights2[1].data()), sizeof(int16_t) * HIDDEN_SIZE);
     file.read(reinterpret_cast<char *>(&bias2), sizeof(int16_t));
+    std::cout << "Succesfully loaded network via file reading!\n";
 #else
     std::size_t idx = 0;
     std::memcpy(weights1.data(), &gNetworkDataData[idx], sizeof(weights1));
@@ -38,6 +39,7 @@ bool NNUENetwork::load_from_file(const std::string &filename)
     idx += sizeof(weights2[1]);
     std::memcpy(&bias2, &gNetworkDataData[idx], sizeof(int16_t));
     idx += sizeof(int16_t);
+    std::cout << "Succesfully loaded network via incbin!\n";
 #endif
 
     return true;
