@@ -295,7 +295,7 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
         killers[i].fill(NULL_MOVE);
     }
 
-    Score score, alpha, beta;
+    int score, alpha, beta;
     auto depth = 1;
     auto running = true;
     int limit_depth = limiter.get_mode() == SearchLimiter::SearchMode::DEPTH_SEARCH ? limiter.get_depth() : 100;
@@ -303,7 +303,7 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     start_clock();
     while (running && depth <= limit_depth) // limit how much we can search
     {
-        Score window = 30;
+        int window = 30;
         if (depth <= 4)
         {
             alpha = -INF;
@@ -323,22 +323,23 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
                 score = negamax<true>(alpha, beta, depth, 0);
                 std::cout << "info score " << score << " depth " << depth << " nodes " << nodes << " time "
                           << get_time_since_start() - search_start_time << std::endl;
+                std::cout << alpha << " " << beta << " " << window << "\n";
                 thread_best_move = root_best_move; // only take into account full search results, for now
 
                 if (score <= alpha)
                 {
-                    alpha = std::max<Score>(-INF, alpha - window);
+                    alpha = std::max<int>(-INF, alpha - window);
                 }
                 else if (score >= beta)
                 {
-                    beta = std::min<Score>(INF, beta + window);
+                    beta = std::min<int>(INF, beta + window);
                 }
                 else
                 {
                     break;
                 }
 
-                window *= 2;
+                window = std::min<int>(INF, 2 * window);
             }
         }
         catch (...)
