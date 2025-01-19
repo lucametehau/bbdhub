@@ -326,25 +326,6 @@ class Board
         return hash;
     }
 
-    void make_null_move()
-    {
-        // record the board state before the move is made
-        BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square, cur_zobrist_hash};
-        // record the current state
-        board_state_array.push_back(current_state);
-        // clear previous target en_passant
-        en_passant_square = Squares::NO_SQUARE;
-
-        half_moves.back()++;
-
-        if (current_color == Colors::BLACK)
-            full_moves++;
-
-        current_color = current_color.flip();
-        pinned_pieces() = get_pinned_pieces();
-        checkers() = get_checkers();
-    }
-
     /// Updates the Board, assuming the move is legal
     /// \param move
     /// \return
@@ -597,6 +578,28 @@ class Board
         checkers() = get_checkers();
     };
 
+    void make_null_move()
+    {
+        accumulators.push_back(accumulators.back());
+
+        // zobrist incremental update (part 1)
+        uint64_t new_zobrsist_hash = cur_zobrist_hash;
+        new_zobrsist_hash ^= BBD::Zobrist::black_to_move;
+        if (en_passant_square != Squares::NO_SQUARE)
+        {
+            new_zobrsist_hash ^= BBD::Zobrist::en_passant_keys[en_passant_square];
+        }
+
+        half_moves.back()++;
+        if (current_color == Colors::BLACK)
+            full_moves++;
+
+        current_color = current_color.flip();
+        cur_zobrist_hash = new_zobrsist_hash;
+        board_state_array.emplace_back(Pieces::NO_PIECE, castling_rights, Squares::NO_SQUARE, cur_zobrist_hash);
+        pinned_pieces() = get_pinned_pieces();
+        checkers() = get_checkers();
+    }
     /// Updates the Board, assuming the move is legal
     /// \param move
     /// \return
@@ -622,11 +625,6 @@ class Board
         en_passant_square = prev_state.en_passant;
         castling_rights = prev_state.castling;
         cur_zobrist_hash = prev_state.zobrist_hash;
-
-        //        if (move == NULL_MOVE)
-        //        {
-        //            return board_state_array.pop_back();
-        //        }
 
         switch (move.type())
         {
@@ -708,7 +706,21 @@ class Board
     /// \return
     void undo_null_move()
     {
-        return undo_move(NULL_MOVE);
+        accumulators.pop_back();
+        board_state_array.pop_back();
+
+        if (current_color == Colors::WHITE)
+            full_moves--;
+        half_moves.back()--;
+        if (half_moves.back() == -1)
+            half_moves.pop_back();
+
+        current_color = current_color.flip();
+
+        BoardState prev_state = board_state_array.back();
+        en_passant_square = prev_state.en_passant;
+        castling_rights = prev_state.castling;
+        cur_zobrist_hash = prev_state.zobrist_hash;
     }
 
     bool threefold_check()
