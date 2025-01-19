@@ -581,6 +581,7 @@ class Board
     void make_null_move()
     {
         accumulators.push_back(accumulators.back());
+        en_passant_square = Squares::NO_SQUARE;
 
         // zobrist incremental update (part 1)
         uint64_t new_zobrsist_hash = cur_zobrist_hash;
@@ -596,7 +597,7 @@ class Board
 
         current_color = current_color.flip();
         cur_zobrist_hash = new_zobrsist_hash;
-        board_state_array.emplace_back(Pieces::NO_PIECE, castling_rights, Squares::NO_SQUARE, cur_zobrist_hash);
+        board_state_array.emplace_back(Pieces::NO_PIECE, castling_rights, en_passant_square, cur_zobrist_hash);
         pinned_pieces() = get_pinned_pieces();
         checkers() = get_checkers();
     }
@@ -712,8 +713,6 @@ class Board
         if (current_color == Colors::WHITE)
             full_moves--;
         half_moves.back()--;
-        if (half_moves.back() == -1)
-            half_moves.pop_back();
 
         current_color = current_color.flip();
 

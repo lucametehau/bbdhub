@@ -184,17 +184,23 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     }
 
     // check for null-move
-    auto major_pieces = board.get_piece_bitboard(board.player_color(), PieceTypes::QUEEN) |
-                        board.get_piece_bitboard(board.player_color(), PieceTypes::ROOK);
-    const short R = 3;
-    if (depth > R && !board.checkers() && major_pieces)
     {
-        board.make_null_move();
-        int score = -negamax<false>(-beta, 1 - beta, depth - 1 - R, ply + 1);
-        board.undo_null_move();
+        auto major_pieces = board.get_piece_bitboard(board.player_color(), PieceTypes::QUEEN) |
+                            board.get_piece_bitboard(board.player_color(), PieceTypes::ROOK);
 
-        if (score >= beta)
-            return beta;
+        auto non_pawn_material = major_pieces | board.get_piece_bitboard(board.player_color(), PieceTypes::BISHOP) |
+                                 board.get_piece_bitboard(board.player_color(), PieceTypes::KNIGHT);
+
+        const short R = 3 + (depth >= 6) + (depth >= 8);
+        if (depth > R && !board.checkers() && major_pieces && non_pawn_material)
+        {
+            board.make_null_move();
+            Score score = -negamax<false>(-beta, 1 - beta, depth - 1 - R, ply + 1);
+            board.undo_null_move();
+
+            if (score >= beta)
+                return beta;
+        }
     }
 
     // Principal variation search
