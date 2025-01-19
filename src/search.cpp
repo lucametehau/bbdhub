@@ -42,17 +42,17 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move
             // Give the TT move a huge bonus so it sorts first
             scores[i] = 1000000000;
         }
-        else if (move == killers[ply][0])
+        else if (board.is_capture(move))
         {
-            scores[i] = 900000000;
+            scores[i] = 900000000 + 100000 * int(board.at(move.to()));
         }
-        else if (move == killers[ply][1])
+        else if (move == killers[ply][0])
         {
             scores[i] = 800000000;
         }
-        else if (board.is_capture(move))
+        else if (move == killers[ply][1])
         {
-            scores[i] = 100000 * int(board.at(move.to()));
+            scores[i] = 700000000;
         }
         else
         {
