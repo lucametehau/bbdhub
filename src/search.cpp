@@ -28,7 +28,7 @@ inline void print_board(const Board &board)
     std::cout << "\n   a b c d e f g h\n\n";
 }
 
-void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move)
+void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move, int ply)
 {
     std::array<int, 256> scores;
 
@@ -44,7 +44,15 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move
         }
         else if (board.is_capture(move))
         {
-            scores[i] = 100000 * int(board.at(move.to()));
+            scores[i] = 900000000 + 100000 * int(board.at(move.to()));
+        }
+        else if (move == killers[ply][0])
+        {
+            scores[i] = 800000000;
+        }
+        else if (move == killers[ply][1])
+        {
+            scores[i] = 700000000;
         }
         else
         {
@@ -66,11 +74,16 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move
     }
 }
 
-Score SearchThread::quiescence(Score alpha, Score beta)
+Score SearchThread::quiescence(Score alpha, Score beta, int ply)
 {
     if (board.threefold_check())
     {
         return 0; // draw
+    }
+
+    if (ply == MAX_DEPTH)
+    { // don't pass the maximum depth, might crash
+        return NNUE::NNUENetwork::evaluate(board.get_accumulators(), board.player_color());
     }
 
     nodes++;
@@ -94,7 +107,7 @@ Score SearchThread::quiescence(Score alpha, Score beta)
     MoveList moves;
     int nr_moves = board.gen_legal_moves<CAPTURE_MOVES>(moves);
 
-    order_moves(moves, nr_moves);
+    order_moves(moves, nr_moves, NULL_MOVE, ply);
 
     for (int i = 0; i < nr_moves; i++)
     {
@@ -106,7 +119,7 @@ Score SearchThread::quiescence(Score alpha, Score beta)
         assert(board.is_capture(move));
 
         board.make_move(move);
-        Score score = -quiescence(-beta, -alpha);
+        Score score = -quiescence(-beta, -alpha, ply + 1);
         board.undo_move(move);
 
         if (score > best)
@@ -133,7 +146,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         return 0; // draw
     }
     if (depth == 0)
-        return quiescence(alpha, beta);
+        return quiescence(alpha, beta, ply);
 
     nodes++;
 
@@ -207,7 +220,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 
-    order_moves(moves, nr_moves, tt_move);
+    order_moves(moves, nr_moves, tt_move, ply);
 
     Score best = -INF;
     int played = 0;
@@ -252,6 +265,11 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
                 if (alpha >= beta)
                 {
+                    if (move != killers[ply][0] && move != killers[ply][1] && !board.is_capture(move))
+                    {
+                        killers[ply][1] = killers[ply][0];
+                        killers[ply][0] = move;
+                    }
                     history[board.player_color()][move.from()][move.to()] += depth * depth;
                     break;
                 }
@@ -292,7 +310,12 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
             p.fill(0);
     }
 
-    Score score, alpha, beta;
+    for (int i = 0; i < MAX_DEPTH; i++)
+    {
+        killers[i].fill(NULL_MOVE);
+    }
+
+    int score, alpha, beta;
     auto depth = 1;
     auto running = true;
     int limit_depth = limiter.get_mode() == SearchLimiter::SearchMode::DEPTH_SEARCH ? limiter.get_depth() : 100;
@@ -300,7 +323,7 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     start_clock();
     while (running && depth <= limit_depth) // limit how much we can search
     {
-        Score window = 30;
+        int window = 30;
         if (depth <= 4)
         {
             alpha = -INF;
@@ -320,22 +343,23 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
                 score = negamax<true>(alpha, beta, depth, 0);
                 std::cout << "info score " << score << " depth " << depth << " nodes " << nodes << " time "
                           << get_time_since_start() - search_start_time << std::endl;
+                std::cout << alpha << " " << beta << " " << window << "\n";
                 thread_best_move = root_best_move; // only take into account full search results, for now
 
                 if (score <= alpha)
                 {
-                    alpha = std::max<Score>(-INF, alpha - window);
+                    alpha = std::max<int>(-INF, alpha - window);
                 }
                 else if (score >= beta)
                 {
-                    beta = std::min<Score>(INF, beta + window);
+                    beta = std::min<int>(INF, beta + window);
                 }
                 else
                 {
                     break;
                 }
 
-                window *= 2;
+                window = std::min<int>(INF, 2 * window);
             }
         }
         catch (...)

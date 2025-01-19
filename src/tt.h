@@ -35,6 +35,7 @@ class TranspositionTable
     TranspositionTable()
     {
         table.resize(TT_SIZE);
+        std::fill(table.begin(), table.end(), TTEntry());
     }
 
     inline int entry_depth(uint64_t key) const
