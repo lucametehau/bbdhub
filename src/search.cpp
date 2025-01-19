@@ -183,21 +183,21 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
     }
 
-    // Principal variation search
     // check for null-move
-    auto major_pieces = board.get_piece_bitboard(board.player_color(), PieceTypes::QUEEN) |
-                        board.get_piece_bitboard(board.player_color(), PieceTypes::ROOK);
-    const short R = 3;
-    if (depth > R && !board.checkers() && major_pieces)
-    {
-        board.make_null_move();
-        int score = -negamax<false>(-beta, 1 - beta, depth - 1 - R, ply + 1);
-        board.undo_move(NULL_MOVE);
+    //    auto major_pieces = board.get_piece_bitboard(board.player_color(), PieceTypes::QUEEN) |
+    //                        board.get_piece_bitboard(board.player_color(), PieceTypes::ROOK);
+    //    const short R = 3;
+    //    if (depth > R && !board.checkers() && major_pieces)
+    //    {
+    //        board.make_null_move();
+    //        int score = -negamax<false>(-beta, 1 - beta, depth - 1 - R, ply + 1);
+    //        board.undo_move(NULL_MOVE);
+    //
+    //        if (score >= beta)
+    //            return beta;
+    //    }
 
-        if (score >= beta)
-            return beta;
-    }
-
+    // Principal variation search
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 

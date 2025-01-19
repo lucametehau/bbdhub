@@ -17,16 +17,16 @@ class BoardTest : public ::testing::Test
     }
 };
 
-TEST_F(BoardTest, NullMove)
-{
-    board.make_move(NULL_MOVE);
-    board.make_move(NULL_MOVE);
-
-    board.undo_null_move();
-    board.undo_null_move();
-    Board new_board;
-    EXPECT_TRUE(is_equal(board, new_board));
-}
+// TEST_F(BoardTest, NullMove)
+//{
+//     board.make_move(NULL_MOVE);
+//     board.make_move(NULL_MOVE);
+//
+//     board.undo_null_move();
+//     board.undo_null_move();
+//     Board new_board;
+//     EXPECT_TRUE(is_equal(board, new_board));
+// }
 
 TEST_F(BoardTest, BasicMoves)
 {

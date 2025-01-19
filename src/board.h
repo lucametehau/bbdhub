@@ -350,10 +350,6 @@ class Board
     /// \return
     void make_move(const Move &move)
     {
-      if (move == NULL_MOVE)
-      {
-        return make_null_move();
-      }
         accumulators.push_back(accumulators.back());
         auto &accumulator = accumulators.back();
 
@@ -627,10 +623,10 @@ class Board
         castling_rights = prev_state.castling;
         cur_zobrist_hash = prev_state.zobrist_hash;
 
-        if (move == NULL_MOVE)
-        {
-            return board_state_array.pop_back();
-        }
+        //        if (move == NULL_MOVE)
+        //        {
+        //            return board_state_array.pop_back();
+        //        }
 
         switch (move.type())
         {
@@ -707,6 +703,13 @@ class Board
             }
         }
     };
+
+    /// Updates the Board for null move
+    /// \return
+    void undo_null_move()
+    {
+        return undo_move(NULL_MOVE);
+    }
 
     bool threefold_check()
     {
