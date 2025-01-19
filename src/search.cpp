@@ -191,7 +191,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         auto non_pawn_material = major_pieces | board.get_piece_bitboard(board.player_color(), PieceTypes::BISHOP) |
                                  board.get_piece_bitboard(board.player_color(), PieceTypes::KNIGHT);
 
-        const short R = 3 + (depth >= 6) + (depth >= 8);
+        const short R = 2;
         if (depth > R && !board.checkers() && major_pieces && non_pawn_material)
         {
             board.make_null_move();
