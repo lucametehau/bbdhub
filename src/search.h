@@ -14,6 +14,8 @@
 namespace BBD::Engine
 {
 
+constexpr int MAX_DEPTH = 100;
+
 inline void init()
 {
     BBD::attacks::init();
@@ -71,6 +73,7 @@ class SearchThread
     Move thread_best_move, root_best_move;
     SearchLimiter limiter;
     std::array<std::array<std::array<int, 64>, 64>, 2> history;
+    std::array<std::array<Move, 2>, MAX_DEPTH> killers;
 
     TranspositionTable tt;
 
@@ -79,9 +82,9 @@ class SearchThread
     uint64_t nodes;
 
   public:
-    void order_moves(MoveList &moves, int nr_moves, const Move tt_move = NULL_MOVE);
+    void order_moves(MoveList &moves, int nr_moves, const Move tt_move, int ply);
 
-    Score quiescence(Score alpha, Score beta);
+    Score quiescence(Score alpha, Score beta, int ply);
 
     template <bool root_node> Score negamax(Score alpha, Score beta, int depth, int ply);
 
