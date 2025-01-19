@@ -128,7 +128,6 @@ class Board
         }
 
         cur_zobrist_hash = hash_calc();
-        // hash_cnt[cur_zobrist_hash]++;
         BoardState current_state{Pieces::NO_PIECE, castling_rights, en_passant_square, cur_zobrist_hash};
         board_state_array.push_back(current_state);
         checkers() = get_checkers();
@@ -301,8 +300,6 @@ class Board
         {
             if (at(sq) != Pieces::NO_PIECE)
             {
-                // uint8_t piece_number = (at(sq).type() * 2 + current_color); // the 2nd term used to be current_color
-                // hash ^= BBD::Zobrist::piece_square_keys[piece_number * 64 + sq];
                 hash ^= BBD::Zobrist::piece_square_keys[64 * int(at(sq)) + sq];
             }
         }
@@ -581,6 +578,29 @@ class Board
         checkers() = get_checkers();
     };
 
+    void make_null_move()
+    {
+        accumulators.push_back(accumulators.back());
+        en_passant_square = Squares::NO_SQUARE;
+
+        // zobrist incremental update (part 1)
+        uint64_t new_zobrsist_hash = cur_zobrist_hash;
+        new_zobrsist_hash ^= BBD::Zobrist::black_to_move;
+        if (en_passant_square != Squares::NO_SQUARE)
+        {
+            new_zobrsist_hash ^= BBD::Zobrist::en_passant_keys[en_passant_square];
+        }
+
+        half_moves.back()++;
+        if (current_color == Colors::BLACK)
+            full_moves++;
+
+        current_color = current_color.flip();
+        cur_zobrist_hash = new_zobrsist_hash;
+        board_state_array.emplace_back(Pieces::NO_PIECE, castling_rights, en_passant_square, cur_zobrist_hash);
+        pinned_pieces() = get_pinned_pieces();
+        checkers() = get_checkers();
+    }
     /// Updates the Board, assuming the move is legal
     /// \param move
     /// \return
@@ -598,8 +618,6 @@ class Board
         half_moves.back()--;
         if (half_moves.back() == -1)
             half_moves.pop_back();
-
-        // hash_cnt[cur_zobrist_hash]--;
 
         current_color = current_color.flip();
 
@@ -633,7 +651,6 @@ class Board
         case ENPASSANT: {
             auto to_pos = to + 8 - 16 * current_color;
             pieces[current_color.flip()][PieceTypes::PAWN].set_bit(to_pos, true);
-
             land[current_color.flip()].set_bit(to_pos, true);
             squares[to_pos] = prev_captured;
             break;
@@ -644,7 +661,6 @@ class Board
         case PROMO_QUEEN:
             auto promotion_piece_type = move.promotion_piece();
             pieces[current_color][promotion_piece_type].set_bit(to, false);
-
             land[current_color].set_bit(to, false);
             squares[from] = prev_captured;
             if (prev_captured != Pieces::NO_PIECE)
@@ -672,7 +688,6 @@ class Board
         {
             squares[from] = squares[to];
             squares[to] = Pieces::NO_PIECE;
-            // board_state_array.pop_back();
         }
         else
         {
@@ -680,7 +695,6 @@ class Board
             std::swap(squares[to], squares[from]);
 
             squares[to] = prev_captured;
-            // board_state_array.pop_back();
             if (squares[to] != Pieces::NO_PIECE)
             {
                 pieces[current_color.flip()][squares[to].type()].set_bit(to, true);
@@ -688,6 +702,25 @@ class Board
             }
         }
     };
+
+    /// Updates the Board for null move
+    /// \return
+    void undo_null_move()
+    {
+        accumulators.pop_back();
+        board_state_array.pop_back();
+
+        if (current_color == Colors::WHITE)
+            full_moves--;
+        half_moves.back()--;
+
+        current_color = current_color.flip();
+
+        BoardState prev_state = board_state_array.back();
+        en_passant_square = prev_state.en_passant;
+        castling_rights = prev_state.castling;
+        cur_zobrist_hash = prev_state.zobrist_hash;
+    }
 
     bool threefold_check()
     {
@@ -804,7 +837,6 @@ class Board
     Square en_passant_square;
     uint64_t cur_zobrist_hash;
     std::vector<std::array<NNUE::NNUENetwork::Accumulator, 2>> accumulators;
-    // std::unordered_map<uint64_t, int> hash_cnt;
 
     struct BoardState
     {

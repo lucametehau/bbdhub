@@ -16,11 +16,11 @@ namespace BBD::Engine
 
 constexpr int MAX_DEPTH = 100;
 
-inline void init()
+inline void init(const std::string &weitghts_path = "./drill/nnue_v1-100/quantised.bin")
 {
     BBD::attacks::init();
     BBD::Zobrist::init();
-    BBD::NNUE::NNUENetwork::load_from_file("./drill/nnue_v1-100/quantised.bin");
+    BBD::NNUE::NNUENetwork::load_from_file(weitghts_path);
 }
 
 class SearchLimiter
