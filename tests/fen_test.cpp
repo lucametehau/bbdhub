@@ -25,6 +25,14 @@ TEST_F(FENTest, InitialPosition)
     EXPECT_TRUE(is_equal(default_board, fen_board));
 }
 
+TEST_F(FENTest, OnlyPosition)
+{
+    Board default_board;
+    Board fen_board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - -");
+
+    EXPECT_TRUE(is_equal(default_board, fen_board));
+}
+
 TEST_F(FENTest, CustomPosition)
 {
     Board fen_board("r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 3");

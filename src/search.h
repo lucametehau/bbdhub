@@ -1,9 +1,16 @@
 #pragma once
+
 #include "board.h"
+#include "move.h"
+#include "tt.h"
 #include "util.h"
+#include <array>
+#include <cstdint>
+#include <ctime>
 
-// setup for searching thread
+#include <filesystem>
 
+// Setup for searching thread
 namespace BBD::Engine
 {
 
@@ -11,6 +18,7 @@ inline void init()
 {
     BBD::attacks::init();
     BBD::Zobrist::init();
+    BBD::NNUE::NNUENetwork::load_from_file("./drill/nnue_v1-100/quantised.bin");
 }
 
 class SearchLimiter
@@ -64,12 +72,14 @@ class SearchThread
     SearchLimiter limiter;
     std::array<std::array<std::array<int, 64>, 64>, 2> history;
 
+    TranspositionTable tt;
+
     time_t start_time;
 
     uint64_t nodes;
 
   public:
-    void order_moves(MoveList &moves, int nr_moves);
+    void order_moves(MoveList &moves, int nr_moves, const Move tt_move = NULL_MOVE);
 
     Score quiescence(Score alpha, Score beta);
 

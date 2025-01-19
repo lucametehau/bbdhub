@@ -1,12 +1,34 @@
 #include "search.h"
-#include "eval.h"
 #include <cassert>
 #include <fstream>
+#include <iostream>
 
 namespace BBD::Engine
 {
 
-void SearchThread::order_moves(MoveList &moves, int nr_moves)
+inline void print_board(const Board &board)
+{
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        std::cout << rank + 1 << "  ";
+        for (int file = 0; file < 8; file++)
+        {
+            Piece piece = board.at(rank * 8 + file);
+            if (piece != Pieces::NO_PIECE)
+            {
+                std::cout << piece.to_char() << ' ';
+            }
+            else
+            {
+                std::cout << ". ";
+            }
+        }
+        std::cout << '\n';
+    }
+    std::cout << "\n   a b c d e f g h\n\n";
+}
+
+void SearchThread::order_moves(MoveList &moves, int nr_moves, const Move tt_move)
 {
     std::array<int, 256> scores;
 
@@ -14,10 +36,20 @@ void SearchThread::order_moves(MoveList &moves, int nr_moves)
     for (int i = 0; i < nr_moves; i++)
     {
         Move move = moves[i];
-        if (board.is_capture(move))
-            scores[i] = 100000 * board.at(move.to());
+
+        if (move == tt_move)
+        {
+            // Give the TT move a huge bonus so it sorts first
+            scores[i] = 1000000000;
+        }
+        else if (board.is_capture(move))
+        {
+            scores[i] = 100000 * int(board.at(move.to()));
+        }
         else
+        {
             scores[i] = history[board.player_color()][move.from()][move.to()];
+        }
     }
 
     // Simple sort
@@ -52,7 +84,7 @@ Score SearchThread::quiescence(Score alpha, Score beta)
         }
     }
 
-    Score eval = board_evaluation(board) * (board.player_color() == Colors::WHITE ? 1 : -1);
+    Score eval = NNUE::NNUENetwork::evaluate(board.get_accumulators(), board.player_color());
     Score best = eval;
 
     if (best >= beta)
@@ -93,6 +125,9 @@ Score SearchThread::quiescence(Score alpha, Score beta)
 
 template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, int depth, int ply)
 {
+    Score alpha_original = alpha;
+    Move best_move;
+
     if (!root_node && board.threefold_check())
     {
         return 0; // draw
@@ -111,12 +146,37 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
     }
 
-    // Reverse futility pruning
-    Score eval = board_evaluation(board) * (board.player_color() == Colors::WHITE ? 1 : -1);
+    // Transposition table probe
+    uint64_t pos_key = board.get_cur_hash();
+    Move tt_move = NULL_MOVE;
 
-    if (!board.checkers() && depth <= 3)
     {
-        int margin = 200 * depth; // change this value later?
+        Score tt_score;
+        TTBound tt_bound;
+
+        if (tt.probe(pos_key, depth, tt_score, tt_bound, tt_move))
+        {
+            if (!root_node && tt.entry_depth(pos_key) >= depth)
+            {
+                if (tt_bound == TTBound::EXACT)
+                    return tt_score;
+                if (tt_bound == TTBound::LOWER && tt_score > alpha)
+                    alpha = tt_score;
+                else if (tt_bound == TTBound::UPPER && tt_score < beta)
+                    beta = tt_score;
+
+                if (alpha >= beta)
+                    return tt_score;
+            }
+        }
+    }
+
+    // Reverse futility pruning
+    Score eval = NNUE::NNUENetwork::evaluate(board.get_accumulators(), board.player_color());
+
+    if (!root_node && !board.checkers() && depth <= 3)
+    {
+        int margin = 200 * depth;
         if (eval >= beta + margin)
         {
             return eval;
@@ -132,7 +192,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     {
         board.make_null_move();
         int score = -negamax<false>(-beta, 1 - beta, depth - 1 - R, ply + 1);
-        board.undo_null_move();
+        board.undo_move(NULL_MOVE);
 
         if (score >= beta)
             return beta;
@@ -141,7 +201,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
 
-    order_moves(moves, nr_moves);
+    order_moves(moves, nr_moves, tt_move);
 
     Score best = -INF;
     int played = 0;
@@ -174,6 +234,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         if (score > best)
         {
             best = score;
+            best_move = move;
 
             if (score > alpha)
             {
@@ -192,10 +253,20 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
     }
 
-    // Now checking for checkmate / stalemate
-
+    // Checkmate / stalemate detection
     if (played == 0)
         return board.checkers() ? -INF + ply : 0;
+
+    // Store in transposition table
+    TTBound bound_type;
+    if (best <= alpha_original)
+        bound_type = TTBound::UPPER;
+    else if (best >= beta)
+        bound_type = TTBound::LOWER;
+    else
+        bound_type = TTBound::EXACT;
+
+    tt.store(pos_key, depth, best, bound_type, best_move);
 
     return best;
 }
@@ -206,15 +277,16 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     nodes = 0;
     board = _board, limiter = _limiter;
 
-    // Fill history with 0 at the beginning
+    tt.clear();
 
+    // Fill history with 0 at the beginning
     for (auto &t : history)
     {
         for (auto &p : t)
             p.fill(0);
     }
 
-    Score score;
+    Score score, alpha, beta;
     auto depth = 1;
     auto running = true;
     int limit_depth = limiter.get_mode() == SearchLimiter::SearchMode::DEPTH_SEARCH ? limiter.get_depth() : 100;
@@ -222,18 +294,50 @@ Move SearchThread::search(Board &_board, SearchLimiter &_limiter)
     start_clock();
     while (running && depth <= limit_depth) // limit how much we can search
     {
+        Score window = 30;
+        if (depth <= 4)
+        {
+            alpha = -INF;
+            beta = INF;
+        }
+        else
+        {
+            alpha = std::max<Score>(-INF, score - window);
+            beta = std::min<Score>(INF, score + window);
+        }
+
+        // aspiration windows loop
         try
         {
-            score = negamax<true>(-INF, INF, depth, 0);
-            std::cout << "info score " << score << " depth " << depth << " nodes " << nodes << " time "
-                      << get_time_since_start() - search_start_time << std::endl;
-            depth++;
-            thread_best_move = root_best_move; // only take into account full search results, for now
+            while (true)
+            {
+                score = negamax<true>(alpha, beta, depth, 0);
+                std::cout << "info score " << score << " depth " << depth << " nodes " << nodes << " time "
+                          << get_time_since_start() - search_start_time << std::endl;
+                thread_best_move = root_best_move; // only take into account full search results, for now
+
+                if (score <= alpha)
+                {
+                    alpha = std::max<Score>(-INF, alpha - window);
+                }
+                else if (score >= beta)
+                {
+                    beta = std::min<Score>(INF, beta + window);
+                }
+                else
+                {
+                    break;
+                }
+
+                window *= 2;
+            }
         }
         catch (...)
         {
             running = false;
         }
+
+        depth++;
     }
     std::cout << "bestmove " << thread_best_move.to_string() << std::endl;
 
