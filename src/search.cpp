@@ -238,11 +238,15 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         Score score;
 
         // Late Move Reduction
-        bool do_lmr = (!root_node && !in_check && !board.is_capture(move) && depth >= 3 && played > 1);
+        bool do_lmr = (!root_node && !in_check && !board.is_capture(move) && depth >= 2 && played > 1);
 
         if (do_lmr)
         {
-            int reduction = 1;
+            int reduction = 2;
+            if (depth >= 6)
+            {
+                reduction = 3;
+            }
 
             score = -negamax<false>(-alpha - 1, -alpha, depth - 1 - reduction, ply + 1);
 
@@ -255,7 +259,8 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         {
             if (played > 1)
             {
-                score = -negamax<false>(-alpha - 1, -alpha, depth - 1, ply + 1);
+                // int reduction = 1;
+                score = -negamax<false>(-alpha - 1, -alpha, depth - 1 /*- reduction*/, ply + 1);
 
                 if (score > alpha && score < beta)
                 {
