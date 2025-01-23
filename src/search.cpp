@@ -220,7 +220,6 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     // Principal variation search
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
-    int played_moves = 0;
 
     order_moves(moves, nr_moves, tt_move, ply);
 
@@ -239,7 +238,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         Score score;
 
         // Late Move Reduction
-        bool do_lmr = (!root_node && !in_check && !board.is_capture(move) && depth >= 3 && played_moves > 1 && i >= 3);
+        bool do_lmr = (!root_node && !in_check && !board.is_capture(move) && depth >= 3 && played > 1);
 
         if (do_lmr)
         {
@@ -254,7 +253,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         }
         else
         {
-            if (played_moves > 1)
+            if (played > 1)
             {
                 score = -negamax<false>(-alpha - 1, -alpha, depth - 1, ply + 1);
 
