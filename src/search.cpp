@@ -140,6 +140,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 {
     Score alpha_original = alpha;
     Move best_move;
+    bool in_check = board.checkers();
 
     if (!root_node && board.threefold_check())
     {
@@ -219,6 +220,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     // Principal variation search
     MoveList moves;
     int nr_moves = board.gen_legal_moves<ALL_MOVES>(moves);
+    int played_moves = 0;
 
     order_moves(moves, nr_moves, tt_move, ply);
 
@@ -236,6 +238,38 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
         Score score;
 
+        // Late Move Reduction
+        bool do_lmr = (!root_node && !in_check && !board.is_capture(move) && depth >= 3 && played_moves > 1 && i >= 3);
+
+        if (do_lmr)
+        {
+            int reduction = 1;
+
+            score = -negamax<false>(-alpha - 1, -alpha, depth - 1 - reduction, ply + 1);
+
+            if (score > alpha && score < beta)
+            {
+                score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
+            }
+        }
+        else
+        {
+            if (played_moves > 1)
+            {
+                score = -negamax<false>(-alpha - 1, -alpha, depth - 1, ply + 1);
+
+                if (score > alpha && score < beta)
+                {
+                    score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
+                }
+            }
+            else
+            {
+                score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
+            }
+        }
+
+        /*
         if (played > 1)
         {
             score = -negamax<false>(-alpha - 1, -alpha, depth - 1, ply + 1);
@@ -247,6 +281,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         {
             score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
         }
+        */
 
         board.undo_move(move);
 
