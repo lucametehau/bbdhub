@@ -13,3 +13,8 @@ I don't know if I will do a per week progress, but I'll try to keep an ordered (
 - Implement Pesto Piece Square Tables evaluation, massive improvment.
 - Add History Heuristic.
 - Various fixes.
+- Helped getting NN working.
+- Helped getting TT move ordering.
+- Implement Aspiration Windows.
+- Implement Killer Moves.
+- That's probably it.

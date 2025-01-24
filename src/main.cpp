@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 
     using namespace BBD::Tests;
     SearchLimiter limiter;
-    limiter.set_time(2000);
+    limiter.set_time(9000);
     SearchThread thread;
 
     append_move_to_file(argv[4], thread.search(current_board, limiter).to_string());
