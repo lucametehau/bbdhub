@@ -238,12 +238,18 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         Score score;
 
         // Late Move Reduction
-        bool do_lmr = (!root_node && !in_check && !board.is_capture(move) && depth >= 2 && played > 2);
+        bool is_killer = (move == killers[ply][0] || move == killers[ply][1]);
+
+        bool do_lmr = (!root_node && !in_check && !board.is_capture(move) && !is_killer && !(move == tt_move) &&
+                       depth >= 3 && played > 2 && played > std::max(1, (depth / 3)));
 
         if (do_lmr)
         {
-            int reduction = (depth >= 6) ? 3 : 2;
-            score = -negamax<false>(-alpha - 1, -alpha, depth - 1 - reduction, ply + 1);
+            int reduction = (depth >= 7) ? 4 : (depth >= 5) ? 3 : 2;
+            int reduced_depth = depth - 1 - reduction;
+            reduced_depth = std::max(1, reduced_depth);
+
+            score = -negamax<false>(-alpha - 1, -alpha, reduced_depth, ply + 1);
 
             if (score > alpha && score < beta)
             {
@@ -254,20 +260,6 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
         {
             score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
         }
-
-        /*
-        if (played > 1)
-        {
-            score = -negamax<false>(-alpha - 1, -alpha, depth - 1, ply + 1);
-
-            if (score > alpha && score < beta)
-                score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
-        }
-        else
-        {
-            score = -negamax<false>(-beta, -alpha, depth - 1, ply + 1);
-        }
-        */
 
         board.undo_move(move);
 
@@ -286,7 +278,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
 
                 if (alpha >= beta)
                 {
-                    if (move != killers[ply][0] && move != killers[ply][1] && !board.is_capture(move))
+                    if (!is_killer && !board.is_capture(move))
                     {
                         killers[ply][1] = killers[ply][0];
                         killers[ply][0] = move;
