@@ -146,7 +146,7 @@ template <bool root_node> Score SearchThread::negamax(Score alpha, Score beta, i
     {
         return 0; // draw
     }
-    if (depth == 0)
+    if (depth <= 0)
         return quiescence(alpha, beta, ply);
 
     nodes++;
